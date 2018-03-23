@@ -1,0 +1,11 @@
+{
+    "extends": ["tslint:recommended"],
+    "rules": {
+        "quotemark": [true, "single"],
+        "no-submodule-imports": false,
+        "object-literal-sort-keys": false,
+        "space-before-function-paren": false,
+        "no-empty": false,
+        "one-line": false
+    }
+}

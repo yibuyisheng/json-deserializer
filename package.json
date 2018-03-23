@@ -1,0 +1,55 @@
+{
+  "name": "json-deserializer",
+  "version": "0.0.1",
+  "description": "JSON 反序列化",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "jest",
+    "test-debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
+    "publish-npm": "tsc && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yibuyisheng/json-deserializer.git"
+  },
+  "keywords": [
+    "JSON",
+    "deserializer"
+  ],
+  "author": "yibuyisheng",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yibuyisheng/json-deserializer/issues"
+  },
+  "homepage": "https://github.com/yibuyisheng/json-deserializer#readme",
+  "typings": "types/index.d.ts",
+  "dependencies": {
+    "moment": "^2.21.0"
+  },
+  "sideEffects": false,
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "collectCoverage": true,
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "globals": {
+      "ts-jest": {
+        "skipBabel": true
+      }
+    },
+    "testPathIgnorePatterns": [
+      "/(node_modules|lib|coverage|types)/"
+    ]
+  },
+  "devDependencies": {
+    "@types/jest": "^22.2.2",
+    "jest": "^22.4.3",
+    "ts-jest": "^22.4.2",
+    "typescript": "^2.7.2"
+  }
+}
