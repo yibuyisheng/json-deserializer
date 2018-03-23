@@ -13,6 +13,13 @@ export interface IOption {
  */
 export default abstract class Parser {
     /**
+     * @override
+     */
+    public static toString() {
+        return `${this.name}{}`;
+    }
+
+    /**
      * 该属性值是否是必须的。
      *
      * @protected

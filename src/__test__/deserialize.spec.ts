@@ -141,4 +141,60 @@ describe('deserialize', () => {
         );
     });
 
+    it('should throw Error while the array schema is not match.', () => {
+        expect(
+            () => deserialize({}, [StringParser]),
+        ).toThrowError(
+            `Not match: [val] {} [config] [StringParser{}]`,
+        );
+    });
+
+    it('should throw Error while the object schema is not match.', () => {
+        expect(
+            () => deserialize('yibuyisheng', {name: NumberParser}),
+        ).toThrowError(
+            'Not match: [val] "yibuyisheng" [config] {name: NumberParser{}}',
+        );
+    });
+
+    it('should throw Error while the nested schema is not match.', () => {
+        expect(
+            () => deserialize([{}], [[StringParser]]),
+        ).toThrowError(
+            'Not match: [val] {} [config] [StringParser{}]',
+        );
+    });
+
+    it('should throw Error while the array nested object is not match.', () => {
+        expect(
+            () => deserialize(['yibuyisheng'], [{name: {age: NumberParser}}]),
+        ).toThrowError(
+            'Not match: [val] "yibuyisheng" [config] {name: {age: NumberParser{}}}',
+        );
+    });
+
+    it('should throw Error while the data is not array and the schema is array.', () => {
+        expect(
+            () => deserialize({name: 'yibuyisheng'}, {name: [StringParser]}),
+        ).toThrowError(
+            'Not match: [val] "yibuyisheng" [config] [StringParser{}]',
+        );
+    });
+
+    it('should throw Error while the nested object is not match.', () => {
+        expect(
+            () => deserialize({name: 'yibuyisheng'}, {name: {age: StringParser}}),
+        ).toThrowError(
+            'Not match: [val] "yibuyisheng" [config] {age: StringParser{}}',
+        );
+    });
+
+    it('should output the `undefined` in scheme.', () => {
+        expect(
+            () => deserialize({name: 'yibuyisheng'}, {name: {age: undefined}}),
+        ).toThrowError(
+            'Not match: [val] "yibuyisheng" [config] {age: undefined}',
+        );
+    });
+
 });

@@ -33,6 +33,33 @@ export interface IObjectConfig {
     [field: string]: IParserConstructor | INormalizedFieldParserConfig | IArrayConfig | IObjectConfig;
 }
 
+function stringifyConfig(config: any): string {
+    if (config instanceof Array) {
+        const output: string[] = [];
+        config.reduce((prev, cur) => {
+            prev.push(stringifyConfig(cur));
+            return prev;
+        }, output);
+        return `[${output.join(', ')}]`;
+    }
+
+    if (isObject(config)) {
+        const output: string[] = [];
+        /* tslint:disable forin */
+        for (const key in config) {
+        /* tslint:enable forin */
+            output.push(`${key}: ${stringifyConfig(config[key])}`);
+        }
+        return `{${output.join(', ')}}`;
+    }
+
+    if (isParserConstructor(config)) {
+        return config.toString();
+    }
+
+    return JSON.stringify(config);
+}
+
 function isParserConstructor(parser: any): boolean {
     if (!parser) {
         return false;
@@ -47,7 +74,7 @@ function isParserConfig(config: any): boolean {
 }
 
 function isObject(val: any): boolean {
-    return val !== null && typeof val === 'object';
+    return val !== null && typeof val === 'object' && !(val instanceof Array);
 }
 
 function deserializeArray(
@@ -84,7 +111,7 @@ function deserializeArray(
                 if (val && !(val instanceof Array)) {
                     throw createError(
                         ErrorCode.ERR_SCHEMA_NOT_MATCH,
-                        `Not match: [val] ${JSON.stringify(val)} [config] ${JSON.stringify(parserConfig)}`,
+                        `Not match: [val] ${JSON.stringify(val)} [config] ${stringifyConfig(parserConfig)}`,
                         {config: parserConfig, val},
                     );
                 } else if (val) {
@@ -104,7 +131,7 @@ function deserializeArray(
                 } else if (val !== undefined) {
                     throw createError(
                         ErrorCode.ERR_SCHEMA_NOT_MATCH,
-                        `Not match: [val] ${JSON.stringify(val)} [config] ${JSON.stringify(parserConfig)}`,
+                        `Not match: [val] ${JSON.stringify(val)} [config] ${stringifyConfig(parserConfig)}`,
                         {config: parserConfig, val},
                     );
                 }
@@ -172,7 +199,7 @@ function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): IJSO
             } else if (jsonObject[field] !== undefined) {
                 throw createError(
                     ErrorCode.ERR_SCHEMA_NOT_MATCH,
-                    `Not match: [val] ${JSON.stringify(jsonObject[field])} [config] ${JSON.stringify(parserConfig)}`,
+                    `Not match: [val] ${JSON.stringify(jsonObject[field])} [config] ${stringifyConfig(parserConfig)}`,
                     {config: parserConfig, val: jsonObject[field], field},
                 );
             }
@@ -184,7 +211,7 @@ function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): IJSO
             } else if (jsonObject[field] !== undefined) {
                 throw createError(
                     ErrorCode.ERR_SCHEMA_NOT_MATCH,
-                    `Not match: [val] ${JSON.stringify(jsonObject[field])} [config] ${JSON.stringify(parserConfig)}`,
+                    `Not match: [val] ${JSON.stringify(jsonObject[field])} [config] ${stringifyConfig(parserConfig)}`,
                     {config: parserConfig, val: jsonObject[field], field},
                 );
             }
@@ -201,6 +228,7 @@ export default function deserialize<P extends Parser>(
     jsonObject: IJSONObject | IJSONArray | JSONBaseType,
     config: IParserConstructor | INormalizedFieldParserConfig | IArrayConfig | IObjectConfig,
 ): IJSONObject | IJSONArray | undefined {
+    // config instanceof IParserConstructor
     if (isParserConstructor(config)) {
         if (jsonObject instanceof Array) {
             return deserializeArray(jsonObject, config);
@@ -210,6 +238,7 @@ export default function deserialize<P extends Parser>(
         return parser.parse(jsonObject);
     }
 
+    // config instanceof INormalizedFieldParserConfig
     if (isParserConfig(config)) {
         if (jsonObject instanceof Array) {
             return deserializeArray(jsonObject, config);
@@ -219,6 +248,7 @@ export default function deserialize<P extends Parser>(
         return parser.parse(jsonObject);
     }
 
+    // config instanceof IArrayConfig
     if (config instanceof Array) {
         if (jsonObject instanceof Array) {
             return deserializeArray(jsonObject, config);
@@ -226,18 +256,19 @@ export default function deserialize<P extends Parser>(
 
         throw createError(
             ErrorCode.ERR_SCHEMA_NOT_MATCH,
-            `Not match: [val] ${JSON.stringify(jsonObject)} [config] ${JSON.stringify(config)}`,
+            `Not match: [val] ${JSON.stringify(jsonObject)} [config] ${stringifyConfig(config)}`,
             {config, val: jsonObject},
         );
     }
 
+    // config instanceof IObjectConfig
     if (isObject(jsonObject)) {
         return deserializeObject(jsonObject as IJSONObject, config as IObjectConfig);
     }
 
     throw createError(
         ErrorCode.ERR_SCHEMA_NOT_MATCH,
-        `Not match: [val] ${JSON.stringify(jsonObject)} [config] ${JSON.stringify(config)}`,
+        `Not match: [val] ${JSON.stringify(jsonObject)} [config] ${stringifyConfig(config)}`,
         {config, val: jsonObject},
     );
 }
