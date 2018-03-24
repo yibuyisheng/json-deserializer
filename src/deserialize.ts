@@ -134,60 +134,7 @@ function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): {[ke
     for (const field in config) {
     /* tslint:enable forin */
         const parserConfig = config[field];
-
-        // config instanceof IParserConstructor
-        if (isParserConstructor(parserConfig)) {
-            if (jsonObject[field] instanceof Array) {
-                result[field] = deserializeArray(jsonObject[field] as IJSONArray, parserConfig);
-            } else {
-                const normalizedConfig = {
-                    parser: parserConfig as IParserConstructor,
-                    from: field,
-                };
-                const parser = new normalizedConfig.parser({isRequired: false, ...normalizedConfig});
-                result[field] = parser.parse(jsonObject[normalizedConfig.from]);
-            }
-        }
-        // config instanceof IFieldParserConfig
-        else if (isParserConfig(parserConfig)) {
-            const cfg = parserConfig as Partial<IFieldParserConfig>;
-            const normalizedConfig = {
-                ...cfg,
-                parser: cfg.parser as IParserConstructor,
-                from: cfg.from || field,
-            };
-
-            if (jsonObject[normalizedConfig.from] instanceof Array) {
-                result[field] = deserializeArray(jsonObject[normalizedConfig.from] as IJSONArray, parserConfig);
-            } else {
-                const parser = new normalizedConfig.parser({isRequired: false, ...normalizedConfig});
-                result[field] = parser.parse(jsonObject[normalizedConfig.from]);
-            }
-        }
-        // config instanceof IArrayConfig
-        else if (parserConfig instanceof Array) {
-            if (jsonObject[field] instanceof Array) {
-                result[field] = deserializeArray(jsonObject[field] as IJSONArray, parserConfig as IArrayConfig);
-            } else if (jsonObject[field] !== undefined) {
-                throw createError(
-                    ErrorCode.ERR_SCHEMA_NOT_MATCH,
-                    `Not match: [val] ${JSON.stringify(jsonObject[field])} [config] ${stringifyConfig(parserConfig)}`,
-                    {config: parserConfig, val: jsonObject[field], field},
-                );
-            }
-        }
-        // config instanceof IObjectConfig
-        else {
-            if (isObject(jsonObject[field])) {
-                result[field] = deserializeObject(jsonObject[field] as IJSONObject, parserConfig as IObjectConfig);
-            } else if (jsonObject[field] !== undefined) {
-                throw createError(
-                    ErrorCode.ERR_SCHEMA_NOT_MATCH,
-                    `Not match: [val] ${JSON.stringify(jsonObject[field])} [config] ${stringifyConfig(parserConfig)}`,
-                    {config: parserConfig, val: jsonObject[field], field},
-                );
-            }
-        }
+        result[field] = deserialize(jsonObject[field], parserConfig);
     }
 
     return result;
