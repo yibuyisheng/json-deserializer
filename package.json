@@ -1,12 +1,13 @@
 {
   "name": "json-deserializer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "通过配置 schema 将 JSON 数据转换成指定的类型和格式。",
   "main": "lib/index.js",
   "scripts": {
     "test": "jest",
     "test-debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
-    "publish-npm": "tsc && npm publish"
+    "publish-npm": "tsc && npm publish",
+    "tag": "node tool/tag.js"
   },
   "repository": {
     "type": "git",
