@@ -197,4 +197,12 @@ describe('deserialize', () => {
         );
     });
 
+    it('should handle the same shape in array.', () => {
+        testEqual(
+            [{name: 'yibuyisheng', age: 21}, {name: 'zhangsan', age: 22}],
+            [{name: StringParser, age: StringParser}],
+            [{name: 'yibuyisheng', age: '21'}, {name: 'zhangsan', age: '22'}],
+        );
+    });
+
 });

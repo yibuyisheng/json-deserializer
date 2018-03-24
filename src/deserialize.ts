@@ -95,16 +95,17 @@ function deserializeArray(
     }
     // config instanceof IArrayConfig
     else if (config instanceof Array) {
-        let lastParser: Parser;
+        let lastParserConfig: any;
         (jsonArray as JSONObject[]).reduce<IJSONArray>((prev, val, index) => {
             const parserConfig = config[index];
             // parserConfig instanceof IParserConstructor
             if (isParserConstructor(parserConfig)) {
-                const parser = new (parserConfig as IParserConstructor)();
-                result[index] = val instanceof Array
-                    ? deserializeArray(val, parserConfig)
-                    : parser.parse(val);
-                lastParser = parser;
+                if (val instanceof Array) {
+                    result[index] = deserializeArray(val, parserConfig);
+                } else {
+                    const parser = new (parserConfig as IParserConstructor)();
+                    result[index] = parser.parse(val);
+                }
             }
             // parserConfig instanceof IArrayConfig
             else if (parserConfig instanceof Array) {
@@ -122,7 +123,6 @@ function deserializeArray(
             else if (isParserConfig(parserConfig)) {
                 const parser = new ((parserConfig as INormalizedFieldParserConfig).parser)(parserConfig);
                 result[index] = val instanceof Array ? deserializeArray(val, parserConfig) : parser.parse(val);
-                lastParser = parser;
             }
             // 普通配置对象，继续往下解析
             else if (isObject(parserConfig)) {
@@ -137,9 +137,24 @@ function deserializeArray(
                 }
             }
             // 配置的 parser 数量少于待转换的数据量，就直接用之前的 parser 来转换剩下的元素
-            else if (parserConfig === undefined && lastParser) {
-                result[index] = lastParser.parse(val);
+            else if (parserConfig === undefined && lastParserConfig) {
+                const isMatch: boolean = (isParserConstructor(lastParserConfig) && val !== undefined)
+                    || (isParserConfig(lastParserConfig) && val !== undefined)
+                    || (lastParserConfig instanceof Array && val instanceof Array)
+                    || (isObject(lastParserConfig) && isObject(val));
+
+                if (isMatch) {
+                    const ret = deserialize(val, lastParserConfig);
+                    if (ret !== undefined) {
+                        result[index] = ret;
+                    }
+                }
             }
+
+            if (parserConfig) {
+                lastParserConfig = parserConfig;
+            }
+
             return prev;
         }, result);
     }
@@ -224,7 +239,7 @@ function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): IJSO
 /**
  * 反序列化入口函数。
  */
-export default function deserialize<P extends Parser>(
+export default function deserialize(
     jsonObject: IJSONObject | IJSONArray | JSONBaseType,
     config: IParserConstructor | INormalizedFieldParserConfig | IArrayConfig | IObjectConfig,
 ): IJSONObject | IJSONArray | undefined {
