@@ -89,46 +89,11 @@ function deserializeArray(
         let lastParserConfig: any;
         jsonArray.reduce((prev, val, index) => {
             const parserConfig = cfg[index];
-            // parserConfig instanceof IParserConstructor
-            if (isParserConstructor(parserConfig)) {
-                if (val instanceof Array) {
-                    result[index] = deserializeArray(val, parserConfig);
-                } else {
-                    const parser = new (parserConfig as IParserConstructor)();
-                    result[index] = parser.parse(val);
-                }
-            }
-            // parserConfig instanceof IArrayConfig
-            else if (parserConfig instanceof Array) {
-                if (val && !(val instanceof Array)) {
-                    throw createError(
-                        ErrorCode.ERR_SCHEMA_NOT_MATCH,
-                        `Not match: [val] ${JSON.stringify(val)} [config] ${stringifyConfig(parserConfig)}`,
-                        {config: parserConfig, val},
-                    );
-                } else if (val) {
-                    result[index] = deserializeArray(val as IJSONArray, parserConfig);
-                }
-            }
-            // parserConfig instanceof IFieldParserConfig
-            else if (isParserConfig(parserConfig)) {
-                const parser = new ((parserConfig as IFieldParserConfig).parser)(parserConfig);
-                result[index] = val instanceof Array ? deserializeArray(val, parserConfig) : parser.parse(val);
-            }
-            // 普通配置对象，继续往下解析
-            else if (isObject(parserConfig)) {
-                if (isObject(val)) {
-                    result[index] = deserializeObject(val as IJSONObject, parserConfig);
-                } else if (val !== undefined) {
-                    throw createError(
-                        ErrorCode.ERR_SCHEMA_NOT_MATCH,
-                        `Not match: [val] ${JSON.stringify(val)} [config] ${stringifyConfig(parserConfig)}`,
-                        {config: parserConfig, val},
-                    );
-                }
+            if (parserConfig) {
+                result[index] = deserialize(val, parserConfig);
             }
             // 配置的 parser 数量少于待转换的数据量，就直接用之前的 parser 来转换剩下的元素
-            else if (parserConfig === undefined && lastParserConfig) {
+            else if (lastParserConfig) {
                 const isMatch: boolean = (isParserConstructor(lastParserConfig) && val !== undefined)
                     || (isParserConfig(lastParserConfig) && val !== undefined)
                     || (lastParserConfig instanceof Array && val instanceof Array)
