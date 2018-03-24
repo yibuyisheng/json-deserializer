@@ -54,6 +54,10 @@ function isJSONObject(val: any): boolean {
     return isObject(val);
 }
 
+function isObjectConfig(val: any): boolean {
+    return isObject(val);
+}
+
 function isParserConstructor(parser: any): boolean {
     if (!parser) {
         return false;
@@ -94,10 +98,17 @@ function deserializeArray(
             }
             // 配置的 parser 数量少于待转换的数据量，就直接用之前的 parser 来转换剩下的元素
             else if (lastParserConfig) {
-                const isMatch: boolean = (isParserConstructor(lastParserConfig) && val !== undefined)
+                // 预先检查前面的 parser 是否能够应用到当前 JSON 数据的转换，如果不能，就直接放弃了，而不是抛出“不匹配”的错误。
+                const isMatch: boolean =
+                    // 如果 lastParserConfig 直接就是 Parser 类，那么只要当前元素存在就可以转换。
+                    // **注意：**在 JSON 里面没有 undefined ，所以遇到 undefined ，其实就是在原 JSON 数据里面不存在。
+                    (isParserConstructor(lastParserConfig) && val !== undefined)
+                    // 如果 lastParserConfig 是一个展开的 parser 配置（ {parser: ParserClass } ），那么只要当前元素存在就可以转换。
                     || (isParserConfig(lastParserConfig) && val !== undefined)
-                    || (lastParserConfig instanceof Array && val instanceof Array)
-                    || (isObject(lastParserConfig) && isObject(val));
+                    // 如果 lastParserConfig 是一个数组，那么只要 val 也是数组就可以转换。
+                    || (isArrayConfig(lastParserConfig) && isJSONArray(val))
+                    // 如果 lastParserConfig 是一个对象配置，那么只要 val 也对应是对象，就可以转换。
+                    || (isObjectConfig(lastParserConfig) && isJSONObject(val));
 
                 if (isMatch) {
                     const ret = deserialize(val, lastParserConfig);
