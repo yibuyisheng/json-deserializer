@@ -80,8 +80,8 @@ function isObject(val: any): boolean {
 function deserializeArray(
     jsonArray: IJSONArray,
     config: IParserConstructor | IArrayConfig | INormalizedFieldParserConfig,
-): IJSONArray {
-    const result: IJSONArray = [];
+): any[] {
+    const result: any[] = [];
     type JSONObject = IJSONObject | IJSONArray | JSONBaseType;
     type ConfigObject = IParserConstructor | IArrayConfig | IObjectConfig;
 
@@ -242,7 +242,7 @@ function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): IJSO
 export default function deserialize(
     jsonObject: IJSONObject | IJSONArray | JSONBaseType,
     config: IParserConstructor | INormalizedFieldParserConfig | IArrayConfig | IObjectConfig,
-): IJSONObject | IJSONArray | undefined {
+): object | undefined {
     // config instanceof IParserConstructor
     if (isParserConstructor(config)) {
         if (jsonObject instanceof Array) {
