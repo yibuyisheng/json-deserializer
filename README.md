@@ -50,7 +50,7 @@ deserialize(jsonObject, schema); // result: ['20']
 ```js
 import deserialize, {StringParser} from 'json-deserializer';
 
-const jsonObject = {name: 'yibuyisheng', age: 20};
+const jsonObject = {"name": "yibuyisheng", "age": 20};
 const schema = {name: StringParser};
 deserialize(jsonObject, schema); // result: {name: 'yibuyisheng'}
 ```
