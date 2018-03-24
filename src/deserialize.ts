@@ -2,36 +2,10 @@
  * @file deserialize
  * @author yibuyisheng(yibuyisheng@163.com)
  */
+import {ConfigValue, IArrayConfig, IFieldParserConfig, IObjectConfig, IParserConstructor} from './ConfigTypes';
 import {createError, ErrorCode} from './Error';
-import Parser, {IOption} from './Parser';
-
-export type JSONBaseType = string | number | true | false | null;
-
-export interface IJSONObject {
-    [key: string]: JSONBaseType | IJSONObject | IJSONArray;
-}
-
-export interface IJSONArray {
-    [index: number]: JSONBaseType | IJSONObject | IJSONArray;
-}
-
-export interface IParserConstructor {
-    new (options?: IOption | Record<string, any>): Parser;
-}
-
-export interface IArrayConfig {
-    [field: number]: IParserConstructor | IArrayConfig | IObjectConfig;
-}
-
-export interface INormalizedFieldParserConfig {
-    parser: IParserConstructor;
-    from: string;
-    [key: string]: any;
-}
-
-export interface IObjectConfig {
-    [field: string]: IParserConstructor | INormalizedFieldParserConfig | IArrayConfig | IObjectConfig;
-}
+import {IJSONArray, IJSONObject, JSONValue} from './JSONTypes';
+import Parser from './Parser';
 
 function stringifyConfig(config: any): string {
     if (config instanceof Array) {
@@ -60,6 +34,26 @@ function stringifyConfig(config: any): string {
     return JSON.stringify(config);
 }
 
+function isArray(val: any): boolean {
+    return Object.prototype.toString.call(val) === '[object Array]';
+}
+
+function isObject(val: any): boolean {
+    return val !== null && typeof val === 'object' && !isArray(val);
+}
+
+function isJSONArray(val: any): boolean {
+    return isArray(val);
+}
+
+function isArrayConfig(val: any): boolean {
+    return isArray(val);
+}
+
+function isJSONObject(val: any): boolean {
+    return isObject(val);
+}
+
 function isParserConstructor(parser: any): boolean {
     if (!parser) {
         return false;
@@ -70,34 +64,31 @@ function isParserConstructor(parser: any): boolean {
 }
 
 function isParserConfig(config: any): boolean {
-    return config && isParserConstructor(config.parser);
-}
-
-function isObject(val: any): boolean {
-    return val !== null && typeof val === 'object' && !(val instanceof Array);
+    return isObject(config) && isParserConstructor(config.parser);
 }
 
 function deserializeArray(
     jsonArray: IJSONArray,
-    config: IParserConstructor | IArrayConfig | INormalizedFieldParserConfig,
+    config: IParserConstructor | IArrayConfig | IFieldParserConfig,
 ): any[] {
     const result: any[] = [];
-    type JSONObject = IJSONObject | IJSONArray | JSONBaseType;
-    type ConfigObject = IParserConstructor | IArrayConfig | IObjectConfig;
 
     // config instanceof IParserConstructor
     if (isParserConstructor(config)) {
-        const parser = new (config as IParserConstructor)();
-        (jsonArray as JSONObject[]).reduce<IJSONArray>((prev, val, index) => {
+        const ParserClass = config as IParserConstructor;
+        const parser = new ParserClass();
+        jsonArray.reduce((prev, val, index) => {
             prev[index] = parser.parse(val);
             return prev;
         }, result);
     }
     // config instanceof IArrayConfig
-    else if (config instanceof Array) {
+    else if (isArrayConfig(config)) {
+        const cfg = config as IArrayConfig;
+
         let lastParserConfig: any;
-        (jsonArray as JSONObject[]).reduce<IJSONArray>((prev, val, index) => {
-            const parserConfig = config[index];
+        jsonArray.reduce((prev, val, index) => {
+            const parserConfig = cfg[index];
             // parserConfig instanceof IParserConstructor
             if (isParserConstructor(parserConfig)) {
                 if (val instanceof Array) {
@@ -119,9 +110,9 @@ function deserializeArray(
                     result[index] = deserializeArray(val as IJSONArray, parserConfig);
                 }
             }
-            // parserConfig instanceof INormalizedFieldParserConfig
+            // parserConfig instanceof IFieldParserConfig
             else if (isParserConfig(parserConfig)) {
-                const parser = new ((parserConfig as INormalizedFieldParserConfig).parser)(parserConfig);
+                const parser = new ((parserConfig as IFieldParserConfig).parser)(parserConfig);
                 result[index] = val instanceof Array ? deserializeArray(val, parserConfig) : parser.parse(val);
             }
             // 普通配置对象，继续往下解析
@@ -158,10 +149,11 @@ function deserializeArray(
             return prev;
         }, result);
     }
-    // config instanceof INormalizedFieldParserConfig
+    // config instanceof IFieldParserConfig
     else {
-        const parser = new ((config as INormalizedFieldParserConfig).parser as IParserConstructor)(config);
-        (jsonArray as JSONObject[]).reduce<IJSONArray>((prev, val, index) => {
+        const parser = new ((config as IFieldParserConfig).parser as IParserConstructor)(config);
+        const arr = jsonArray as JSONValue[];
+        arr.reduce((prev, val, index) => {
             prev[index] = parser.parse(val);
             return prev;
         }, result);
@@ -170,8 +162,8 @@ function deserializeArray(
     return result;
 }
 
-function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): IJSONObject {
-    const result: IJSONObject = {};
+function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): {[key: string]: any} {
+    const result: {[key: string]: any} = {};
 
     /* tslint:disable forin */
     for (const field in config) {
@@ -191,9 +183,9 @@ function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): IJSO
                 result[field] = parser.parse(jsonObject[normalizedConfig.from]);
             }
         }
-        // config instanceof INormalizedFieldParserConfig
+        // config instanceof IFieldParserConfig
         else if (isParserConfig(parserConfig)) {
-            const cfg = parserConfig as Partial<INormalizedFieldParserConfig>;
+            const cfg = parserConfig as Partial<IFieldParserConfig>;
             const normalizedConfig = {
                 ...cfg,
                 parser: cfg.parser as IParserConstructor,
@@ -240,33 +232,37 @@ function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): IJSO
  * 反序列化入口函数。
  */
 export default function deserialize(
-    jsonObject: IJSONObject | IJSONArray | JSONBaseType,
-    config: IParserConstructor | INormalizedFieldParserConfig | IArrayConfig | IObjectConfig,
-): object | undefined {
+    jsonObject: JSONValue,
+    config: ConfigValue,
+): any {
     // config instanceof IParserConstructor
     if (isParserConstructor(config)) {
-        if (jsonObject instanceof Array) {
-            return deserializeArray(jsonObject, config);
+        // 如果待转换的值是一个数组，就对数组里面的值依次使用 config parser 转换。
+        if (isJSONArray(jsonObject)) {
+            return deserializeArray(jsonObject as IJSONArray, config);
         }
 
-        const parser = new (config as IParserConstructor)();
+        const ParserClass = config as IParserConstructor;
+        const parser = new ParserClass();
         return parser.parse(jsonObject);
     }
 
-    // config instanceof INormalizedFieldParserConfig
+    // config instanceof IFieldParserConfig
     if (isParserConfig(config)) {
-        if (jsonObject instanceof Array) {
-            return deserializeArray(jsonObject, config);
+        // 如果待转换的值是一个数组，就对数组里面的值依次使用 config 中的 parser 进行转换。
+        if (isJSONArray(jsonObject)) {
+            return deserializeArray(jsonObject as IJSONArray, config);
         }
 
-        const parser = new ((config as INormalizedFieldParserConfig).parser)(config);
+        const ParserClass = (config as IFieldParserConfig).parser;
+        const parser = new ParserClass(config);
         return parser.parse(jsonObject);
     }
 
     // config instanceof IArrayConfig
-    if (config instanceof Array) {
-        if (jsonObject instanceof Array) {
-            return deserializeArray(jsonObject, config);
+    if (isArrayConfig(config)) {
+        if (isJSONArray(jsonObject)) {
+            return deserializeArray(jsonObject as IJSONArray, config);
         }
 
         throw createError(
@@ -277,7 +273,7 @@ export default function deserialize(
     }
 
     // config instanceof IObjectConfig
-    if (isObject(jsonObject)) {
+    if (isJSONObject(jsonObject)) {
         return deserializeObject(jsonObject as IJSONObject, config as IObjectConfig);
     }
 
