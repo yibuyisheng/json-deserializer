@@ -205,4 +205,12 @@ describe('deserialize', () => {
         );
     });
 
+    it.only('should handle recursive schema.', () => {
+        testEqual(
+            [{label: '四川', value: 'SC', children: [{label: '达州', value: 'DZ'}, {label: '简阳', value: 'JY'}]}],
+            [{label: StringParser, value: StringParser, children: '^2'}],
+            [{label: '四川', value: 'SC', children: [{label: '达州', value: 'DZ'}, {label: '简阳', value: 'JY'}]}],
+        );
+    });
+
 });

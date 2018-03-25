@@ -4,8 +4,8 @@ export interface IParserConstructor {
     new (options?: IOption | Record<string, any>): Parser;
 }
 
-export interface IArrayConfig {
-    [field: number]: IParserConstructor | IArrayConfig | IObjectConfig;
+export interface IArrayConfig extends Array<ConfigValue> {
+    [field: number]: ConfigValue;
 }
 
 export interface IFieldParserConfig {

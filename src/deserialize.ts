@@ -6,6 +6,15 @@ import {ConfigValue, IArrayConfig, IFieldParserConfig, IObjectConfig, IParserCon
 import {createError, ErrorCode} from './Error';
 import {IJSONArray, IJSONObject, JSONValue} from './JSONTypes';
 import Parser from './Parser';
+import {
+    isArrayConfig,
+    isJSONArray,
+    isJSONObject,
+    isObject,
+    isObjectConfig,
+    isParserConfig,
+    isParserConstructor,
+} from './utils';
 
 function stringifyConfig(config: any): string {
     if (config instanceof Array) {
@@ -32,43 +41,6 @@ function stringifyConfig(config: any): string {
     }
 
     return JSON.stringify(config);
-}
-
-function isArray(val: any): boolean {
-    return Object.prototype.toString.call(val) === '[object Array]';
-}
-
-function isObject(val: any): boolean {
-    return val !== null && typeof val === 'object' && !isArray(val);
-}
-
-function isJSONArray(val: any): boolean {
-    return isArray(val);
-}
-
-function isArrayConfig(val: any): boolean {
-    return isArray(val);
-}
-
-function isJSONObject(val: any): boolean {
-    return isObject(val);
-}
-
-function isObjectConfig(val: any): boolean {
-    return isObject(val);
-}
-
-function isParserConstructor(parser: any): boolean {
-    if (!parser) {
-        return false;
-    }
-
-    const proto = Object.getPrototypeOf(parser);
-    return proto === Parser || proto instanceof Parser;
-}
-
-function isParserConfig(config: any): boolean {
-    return isObject(config) && isParserConstructor(config.parser);
 }
 
 function deserializeArray(
@@ -152,7 +124,7 @@ function deserializeObject(jsonObject: IJSONObject, config: IObjectConfig): {[ke
 }
 
 /**
- * 反序列化入口函数。
+ * 反序列化入口函数。 config 中不能有循环引用。
  */
 export default function deserialize(
     jsonObject: JSONValue,
@@ -162,7 +134,7 @@ export default function deserialize(
     if (isParserConstructor(config)) {
         // 如果待转换的值是一个数组，就对数组里面的值依次使用 config parser 转换。
         if (isJSONArray(jsonObject)) {
-            return deserializeArray(jsonObject as IJSONArray, config);
+            return deserializeArray(jsonObject as IJSONArray, config as IArrayConfig);
         }
 
         const ParserClass = config as IParserConstructor;
@@ -174,7 +146,7 @@ export default function deserialize(
     if (isParserConfig(config)) {
         // 如果待转换的值是一个数组，就对数组里面的值依次使用 config 中的 parser 进行转换。
         if (isJSONArray(jsonObject)) {
-            return deserializeArray(jsonObject as IJSONArray, config);
+            return deserializeArray(jsonObject as IJSONArray, config as IArrayConfig);
         }
 
         const ParserClass = (config as IFieldParserConfig).parser;
@@ -185,7 +157,7 @@ export default function deserialize(
     // config instanceof IArrayConfig
     if (isArrayConfig(config)) {
         if (isJSONArray(jsonObject)) {
-            return deserializeArray(jsonObject as IJSONArray, config);
+            return deserializeArray(jsonObject as IJSONArray, config as IArrayConfig);
         }
 
         throw createError(
