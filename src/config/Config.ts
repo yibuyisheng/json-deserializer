@@ -44,7 +44,34 @@ export default abstract class Config {
         return typeof item === 'string' && /^\^[0-9]+$/.test(item) || (isObject(item) && item[STEP_KEY]);
     }
 
-    protected abstract isLeaf(item: any): boolean;
+    public stringifyConfig(config: any): string {
+        if (config instanceof Array) {
+            const output: string[] = [];
+            config.reduce((prev, cur) => {
+                prev.push(this.stringifyConfig(cur));
+                return prev;
+            }, output);
+            return `[${output.join(', ')}]`;
+        }
+
+        if (isObject(config)) {
+            const output: string[] = [];
+            /* tslint:disable forin */
+            for (const key in config) {
+            /* tslint:enable forin */
+                output.push(`${key}: ${this.stringifyConfig(config[key])}`);
+            }
+            return `{${output.join(', ')}}`;
+        }
+
+        if (this.isLeaf(config)) {
+            return config.toString();
+        }
+
+        return JSON.stringify(config);
+    }
+
+    public abstract isLeaf(item: any): boolean;
 
     protected abstract normalizeLeaf(item: any): any;
 

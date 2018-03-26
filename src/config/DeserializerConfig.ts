@@ -9,7 +9,7 @@ import {isParserConfig, isParserConstructor} from '../utils';
 export type ParserNode = IParserConstructor | IFieldParserConfig;
 
 export default class DeserializerConfig extends Config {
-    protected isLeaf(item: ConfigValue): boolean {
+    public isLeaf(item: ConfigValue): boolean {
         return isParserConstructor(item) || isParserConfig(item);
     }
 
