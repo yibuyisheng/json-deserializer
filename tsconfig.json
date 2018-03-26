@@ -17,7 +17,9 @@
         "watch": false,
         "declaration": true,
         "declarationDir": "./types",
-        "baseUrl": "."
+        "baseUrl": ".",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
     },
     "include": [
         "./src/**/*",

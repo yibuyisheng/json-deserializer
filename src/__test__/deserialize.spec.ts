@@ -1,6 +1,6 @@
 import deserialize from '../deserialize';
-import NumberParser from '../NumberParser';
-import StringParser from '../StringParser';
+import NumberParser from '../parsers/NumberParser';
+import StringParser from '../parsers/StringParser';
 
 function testEqual(jsonObject: any, schema: any, result: any) {
     expect(deserialize(jsonObject, schema)).toEqual(result);
@@ -145,7 +145,7 @@ describe('deserialize', () => {
         expect(
             () => deserialize({}, [StringParser]),
         ).toThrowError(
-            `Not match: [val] {} [config] [StringParser{}]`,
+            `Not match: [val] {} [config] [{parser: StringParser{}}]`,
         );
     });
 
@@ -153,7 +153,7 @@ describe('deserialize', () => {
         expect(
             () => deserialize('yibuyisheng', {name: NumberParser}),
         ).toThrowError(
-            'Not match: [val] "yibuyisheng" [config] {name: NumberParser{}}',
+            'Not match: [val] "yibuyisheng" [config] {name: {parser: NumberParser{}}}',
         );
     });
 
@@ -161,7 +161,7 @@ describe('deserialize', () => {
         expect(
             () => deserialize([{}], [[StringParser]]),
         ).toThrowError(
-            'Not match: [val] {} [config] [StringParser{}]',
+            'Not match: [val] {} [config] [{parser: StringParser{}}]',
         );
     });
 
@@ -169,7 +169,7 @@ describe('deserialize', () => {
         expect(
             () => deserialize(['yibuyisheng'], [{name: {age: NumberParser}}]),
         ).toThrowError(
-            'Not match: [val] "yibuyisheng" [config] {name: {age: NumberParser{}}}',
+            'Not match: [val] "yibuyisheng" [config] {name: {age: {parser: NumberParser{}}}}',
         );
     });
 
@@ -177,7 +177,7 @@ describe('deserialize', () => {
         expect(
             () => deserialize({name: 'yibuyisheng'}, {name: [StringParser]}),
         ).toThrowError(
-            'Not match: [val] "yibuyisheng" [config] [StringParser{}]',
+            'Not match: [val] "yibuyisheng" [config] [{parser: StringParser{}}]',
         );
     });
 
@@ -185,7 +185,7 @@ describe('deserialize', () => {
         expect(
             () => deserialize({name: 'yibuyisheng'}, {name: {age: StringParser}}),
         ).toThrowError(
-            'Not match: [val] "yibuyisheng" [config] {age: StringParser{}}',
+            'Not match: [val] "yibuyisheng" [config] {age: {parser: StringParser{}}}',
         );
     });
 
@@ -193,7 +193,7 @@ describe('deserialize', () => {
         expect(
             () => deserialize({name: 'yibuyisheng'}, {name: {age: undefined}}),
         ).toThrowError(
-            'Not match: [val] "yibuyisheng" [config] {age: undefined}',
+            'Unknown config: undefined',
         );
     });
 
@@ -205,7 +205,7 @@ describe('deserialize', () => {
         );
     });
 
-    it.only('should handle recursive schema.', () => {
+    it('should handle recursive schema.', () => {
         testEqual(
             [{label: '四川', value: 'SC', children: [{label: '达州', value: 'DZ'}, {label: '简阳', value: 'JY'}]}],
             [{label: StringParser, value: StringParser, children: '^2'}],

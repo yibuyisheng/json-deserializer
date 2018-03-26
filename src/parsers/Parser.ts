@@ -2,7 +2,7 @@
  * @file Parser
  * @author yibuyisheng(yibuyisheng@163.com)
  */
-import {createError, ErrorCode} from './Error';
+import {createError, ErrorCode} from '../Error';
 
 export interface IOption {
     isRequired?: boolean;

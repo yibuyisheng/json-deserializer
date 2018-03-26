@@ -6,6 +6,7 @@
         "object-literal-sort-keys": false,
         "space-before-function-paren": false,
         "no-empty": false,
-        "one-line": false
+        "one-line": false,
+        "no-unused-variable": true
     }
 }

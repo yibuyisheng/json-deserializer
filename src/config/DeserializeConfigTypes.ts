@@ -1,4 +1,8 @@
-import Parser, {IOption} from './Parser';
+/**
+ * @file ConfigTypes
+ * @author yibuyisheng(yibuyisheng@163.com)
+ */
+import Parser, {IOption} from '../parsers/Parser';
 
 export interface IParserConstructor {
     new (options?: IOption | Record<string, any>): Parser;

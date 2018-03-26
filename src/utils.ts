@@ -2,9 +2,9 @@
  * @file utils
  * @author yibuyisheng(yibuyisheng@163.com)
  */
-import Parser from './Parser';
+import Parser from './parsers/Parser';
 
-function isArray(val: any): boolean {
+export function isArray(val: any): boolean {
     return Object.prototype.toString.call(val) === '[object Array]';
 }
 

@@ -3,7 +3,7 @@
  * @author yibuyisheng(yibuyisheng@163.com)
  */
 import * as moment from 'moment';
-import {createError, ErrorCode} from './Error';
+import {createError, ErrorCode} from '../Error';
 import Parser, {IOption} from './Parser';
 
 export interface IDateOption extends IOption {

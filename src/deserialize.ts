@@ -2,11 +2,15 @@
  * @file deserialize
  * @author yibuyisheng(yibuyisheng@163.com)
  */
-import {ConfigValue, IArrayConfig, IFieldParserConfig, IObjectConfig, IParserConstructor} from './ConfigTypes';
+import {
+    ConfigValue,
+    IArrayConfig,
+    IFieldParserConfig,
+    IObjectConfig,
+    IParserConstructor,
+} from './config/DeserializeConfigTypes';
 import {createError, ErrorCode} from './Error';
 import {IJSONArray, IJSONObject, JSONValue} from './JSONTypes';
-import NormalizedConfig from './NormalizedConfig';
-import Parser from './Parser';
 import {
     isArrayConfig,
     isJSONArray,
@@ -16,6 +20,7 @@ import {
     isParserConfig,
     isParserConstructor,
 } from './utils';
+import DeserializerConfig from './config/DeserializerConfig';
 
 function stringifyConfig(config: any): string {
     if (config instanceof Array) {
@@ -45,27 +50,23 @@ function stringifyConfig(config: any): string {
 }
 
 class Deserializer {
-    private normalizedConfig: NormalizedConfig = new NormalizedConfig();
+    private config: DeserializerConfig;
+
+    public constructor(config: ConfigValue) {
+        this.config = new DeserializerConfig(config);
+    }
+
+    public run(jsonObject: JSONValue) {
+        return this.deserialize(jsonObject, this.config.config);
+    }
 
     /**
      * 反序列化入口函数。 config 中不能有循环引用。
      */
-    public deserialize(
+    private deserialize(
         jsonObject: JSONValue,
         config: ConfigValue,
     ): any {
-        // config instanceof IParserConstructor
-        if (isParserConstructor(config)) {
-            // 如果待转换的值是一个数组，就对数组里面的值依次使用 config parser 转换。
-            if (isJSONArray(jsonObject)) {
-                return this.deserializeArray(jsonObject as IJSONArray, config as IArrayConfig);
-            }
-
-            const ParserClass = config as IParserConstructor;
-            const parser = new ParserClass();
-            return parser.parse(jsonObject);
-        }
-
         // config instanceof IFieldParserConfig
         if (isParserConfig(config)) {
             // 如果待转换的值是一个数组，就对数组里面的值依次使用 config 中的 parser 进行转换。
@@ -91,9 +92,22 @@ class Deserializer {
             );
         }
 
+        if (this.config.isUpper(config)) {
+            if (jsonObject !== undefined) {
+                const upperConfig = this.config.upConfig(config);
+                if (!upperConfig) {
+                    throw new Error(`Wrong up config: ${upperConfig}.`);
+                }
+                return this.deserialize(jsonObject, upperConfig);
+            }
+            return;
+        }
+
         // config instanceof IObjectConfig
-        if (isJSONObject(jsonObject)) {
-            return this.deserializeObject(jsonObject as IJSONObject, config as IObjectConfig);
+        if (isObjectConfig(config)) {
+            if (isJSONObject(jsonObject)) {
+                return this.deserializeObject(jsonObject as IJSONObject, config as IObjectConfig);
+            }
         }
 
         throw createError(
@@ -105,21 +119,12 @@ class Deserializer {
 
     private deserializeArray(
         jsonArray: IJSONArray,
-        config: IParserConstructor | IArrayConfig | IFieldParserConfig,
+        config: IArrayConfig | IFieldParserConfig,
     ): any[] {
         const result: any[] = [];
 
-        // config instanceof IParserConstructor
-        if (isParserConstructor(config)) {
-            const ParserClass = config as IParserConstructor;
-            const parser = new ParserClass();
-            jsonArray.reduce((prev, val, index) => {
-                prev[index] = parser.parse(val);
-                return prev;
-            }, result);
-        }
         // config instanceof IArrayConfig
-        else if (isArrayConfig(config)) {
+        if (isArrayConfig(config)) {
             const cfg = config as IArrayConfig;
 
             let lastParserConfig: any;
@@ -132,11 +137,9 @@ class Deserializer {
                 else if (lastParserConfig) {
                     // 预先检查前面的 parser 是否能够应用到当前 JSON 数据的转换，如果不能，就直接放弃了，而不是抛出“不匹配”的错误。
                     const isMatch: boolean =
-                        // 如果 lastParserConfig 直接就是 Parser 类，那么只要当前元素存在就可以转换。
                         // **注意：**在 JSON 里面没有 undefined ，所以遇到 undefined ，其实就是在原 JSON 数据里面不存在。
-                        (isParserConstructor(lastParserConfig) && val !== undefined)
                         // 如果 lastParserConfig 是一个展开的 parser 配置（ {parser: ParserClass } ），那么只要当前元素存在就可以转换。
-                        || (isParserConfig(lastParserConfig) && val !== undefined)
+                        (isParserConfig(lastParserConfig) && val !== undefined)
                         // 如果 lastParserConfig 是一个数组，那么只要 val 也是数组就可以转换。
                         || (isArrayConfig(lastParserConfig) && isJSONArray(val))
                         // 如果 lastParserConfig 是一个对象配置，那么只要 val 也对应是对象，就可以转换。
@@ -188,5 +191,5 @@ export default function deserializer(
     jsonObject: JSONValue,
     config: ConfigValue,
 ): any {
-    return new Deserializer().deserialize(jsonObject, config);
+    return new Deserializer(config).run(jsonObject);
 }
