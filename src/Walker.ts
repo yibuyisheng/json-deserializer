@@ -12,6 +12,11 @@ export interface IWalkerOption {
     noCircular: boolean;
 }
 
+export interface IHandled {
+    input: any;
+    result: any;
+}
+
 export default abstract class Walker<C extends Config> {
 
     private config: C;
@@ -22,7 +27,7 @@ export default abstract class Walker<C extends Config> {
 
     protected option: IWalkerOption;
 
-    protected handledInputs: Array<{input: any; result?: any;}> = [];
+    protected handledInputs: IHandled[] = [];
 
     protected originInput: any;
 
@@ -45,8 +50,8 @@ export default abstract class Walker<C extends Config> {
 
     protected abstract isMatchConfig(input: any, config: any): boolean;
 
-    private findHandled(input: any): {input: any; result?: any;} | undefined {
-        let ret: {input: any; result?: any;} | undefined;
+    private findHandled(input: any): IHandled | undefined {
+        let ret: IHandled | undefined;
         this.handledInputs.some((item) => {
             if (input === item.input) {
                 ret = item;
@@ -73,7 +78,7 @@ export default abstract class Walker<C extends Config> {
 
         if (this.isLeafConfig(config)) {
             if (isArray(input)) {
-                const handled: {input: any, result?: any;} = {input, result: []};
+                const handled = {input, result: []};
                 this.handledInputs.push(handled);
 
                 const ret = this.walkArray(input as any[], config, handled.result);
