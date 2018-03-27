@@ -30,7 +30,6 @@ export default class VEUIRulesValidator extends Validator {
         keyPath: KeyPath,
         _: any,
     ): ValidateResult<IVEUIRuleValidateError> {
-        debugger;
         const ret = rule.validate(input, this.rules);
         if (ret === true) {
             return true;
@@ -39,7 +38,7 @@ export default class VEUIRulesValidator extends Validator {
         return {
             message: 'Validate fail with VEUI rules.',
             detail: ret,
-            keyPath,
+            keyPath: keyPath,
         };
     }
 }

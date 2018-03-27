@@ -57,4 +57,215 @@ describe('validate', () => {
         expect(result.name).toBe(true);
         expect(result.child.child).toBe(result);
     });
+
+    it('should validate object.', () => {
+        const result = validate(
+            {
+                name: 'yibuyisheng'
+            },
+            {
+                name: {
+                    validator: VEUIRulesValidator,
+                    rules: [
+                        {
+                            name: 'pattern',
+                            value: /^[a-z]+$/
+                        }
+                    ]
+                }
+            }
+        );
+        expect(result).toEqual({name: true});
+    });
+
+    it('should get invalid messages while the validation fails.', () => {
+        const result = validate(
+            {
+                name: {
+                    first: 'Li',
+                    last: 'Zhang',
+                }
+            },
+            {
+                name: {
+                    validator: VEUIRulesValidator,
+                    rules: [
+                        {
+                            name: 'pattern',
+                            value: /^[a-z]+$/,
+                            message: '格式不符合要求',
+                        }
+                    ]
+                }
+            }
+        );
+        expect(result).toEqual(
+            {
+                name: {
+                    message: 'Validate fail with VEUI rules.',
+                    detail: [
+                        {
+                            name: 'pattern',
+                            message: '格式不符合要求'
+                        }
+                    ],
+                    keyPath: ['name']
+                }
+            }
+        );
+    });
+
+    it('should get `true` while the validation succeed.', () => {
+        const result = validate(
+            {
+                name: {
+                    first: 'Li',
+                    last: 'Zhang',
+                }
+            },
+            {
+                name: {
+                    first: {
+                        validator: VEUIRulesValidator,
+                        rules: [
+                            {
+                                name: 'pattern',
+                                value: /^[a-z]+$/i,
+                                message: '格式不符合要求',
+                            }
+                        ],
+                    }
+                }
+            }
+        );
+        expect(result).toEqual({name: {first: true}});
+    });
+
+    it('should get flatten error message while set the flatten option.', () => {
+        const result = validate(
+            {
+                name: {
+                    first: 'Li',
+                    last: 'Zhang',
+                },
+            },
+            {
+                name: {
+                    validator: VEUIRulesValidator,
+                    rules: [
+                        {
+                            name: 'pattern',
+                            value: /^[a-z]+$/,
+                            message: '格式不符合要求',
+                        }
+                    ]
+                },
+            },
+            {
+                flattenResult: true,
+            }
+        );
+        expect(result).toEqual([
+            {
+                keyPath: ['name'],
+                result: {
+                    detail: [{message: '格式不符合要求', name: 'pattern'}],
+                    keyPath: ['name'],
+                    message: 'Validate fail with VEUI rules.',
+                },
+            }
+        ]);
+    });
+
+    it('should get all flatten error messages while set the `all` option.', () => {
+        const result = validate(
+            {
+                name: ['Li', 'Zhang'],
+            },
+            {
+                name: {
+                    validator: VEUIRulesValidator,
+                    rules: [
+                        {
+                            name: 'pattern',
+                            value: /^[a-z]+$/,
+                            message: '格式不符合要求',
+                        }
+                    ]
+                },
+            },
+            {
+                flattenResult: true,
+                all: true,
+            }
+        );
+        expect(result).toEqual([
+            {
+                keyPath: ['name', 0],
+                result: {
+                    detail: [{message: '格式不符合要求', name: 'pattern'}],
+                    keyPath: ['name', 0],
+                    message: 'Validate fail with VEUI rules.',
+                },
+            },
+            {
+                keyPath: ['name', 1],
+                result: {
+                    detail: [{message: '格式不符合要求', name: 'pattern'}],
+                    keyPath: ['name', 1],
+                    message: 'Validate fail with VEUI rules.',
+                },
+            }
+        ]);
+    });
+
+    it('should handle nested arrays.', () => {
+        let result = validate(
+            [[20]],
+            [[{validator: VEUIRulesValidator, rules: [{name: 'max', value: 21}]}]],
+            {
+                flattenResult: true,
+                all: true,
+            }
+        );
+        expect(result).toEqual(true);
+
+        result = validate(
+            [[18, 20, 17, 23]],
+            [[{validator: VEUIRulesValidator, rules: [{name: 'max', value: 19}]}]],
+            {
+                flattenResult: true,
+                all: true,
+            }
+        );
+        expect(result).toEqual([
+            {
+                keyPath: [0, 1],
+                result: {
+                    detail: [
+                        {
+                            message: '不能大于19',
+                            name: 'max',
+                        }
+                    ],
+                    keyPath: [0, 1],
+                    message: 'Validate fail with VEUI rules.',
+                }
+            },
+            {
+                keyPath: [0, 3],
+                result: {
+                    detail: [
+                        {
+                            message: '不能大于19',
+                            name: 'max'
+                        }
+                    ],
+                    keyPath: [0, 3],
+                    message: 'Validate fail with VEUI rules.'
+                }
+            }
+        ]);
+    });
+
 });

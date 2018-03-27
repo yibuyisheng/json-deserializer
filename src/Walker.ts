@@ -141,7 +141,7 @@ export default abstract class Walker<C extends Config> {
                 this.keyPath[this.keyPath.length - 1] = field;
                 const ret = this.walk(input[field], fieldConfig);
                 if (ret.shouldBreak) {
-                    return {shouldBreak: true};
+                    return {shouldBreak: true, result: {...result, [field]: ret.result}};
                 }
                 result[field] = ret.result;
             }
@@ -163,12 +163,14 @@ export default abstract class Walker<C extends Config> {
             this.keyPath.push(-1);
 
             let lastConfig: any;
+            let lastResult: any;
             const shouldBreak = input.some((val, index) => {
                 const itemConfig = cfg[index];
                 if (itemConfig) {
                     this.keyPath[this.keyPath.length - 1] = index;
                     const ret = this.walk(val, itemConfig);
                     if (ret.shouldBreak) {
+                        lastResult = ret.result;
                         return true;
                     }
                     result[index] = ret.result;
@@ -182,6 +184,7 @@ export default abstract class Walker<C extends Config> {
                         this.keyPath[this.keyPath.length - 1] = index;
                         const ret = this.walk(val, lastConfig);
                         if (ret.shouldBreak) {
+                            lastResult = ret.result;
                             return true;
                         }
                         if (!this.shouldIgnoreUndefined || ret.result !== undefined) {
@@ -200,16 +203,18 @@ export default abstract class Walker<C extends Config> {
             this.keyPath.pop();
 
             if (shouldBreak) {
-                return {shouldBreak};
+                return {shouldBreak, result: [...result, lastResult]};
             }
         }
         // 对应一个配置节点
         else {
+            let lastResult: any;
             this.keyPath.push(-1);
             const shouldBreak = input.some((val, index) => {
                 this.keyPath[this.keyPath.length - 1] = index;
                 const ret = this.walk(val, config);
                 if (ret.shouldBreak) {
+                    lastResult = ret.result;
                     return true;
                 }
                 result[index] = ret.result;
@@ -218,7 +223,7 @@ export default abstract class Walker<C extends Config> {
             this.keyPath.pop();
 
             if (shouldBreak) {
-                return {shouldBreak};
+                return {shouldBreak, result: [...result, lastResult]};
             }
         }
 
