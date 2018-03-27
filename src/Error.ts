@@ -26,6 +26,12 @@ export enum ErrorCode {
     ERR_CONFIG_KEY_EXISTS,
 
     ERR_CONFIG_CURRENT_NOT_ARRAY,
+
+    ERR_CIRCULAR_OBJECT,
+
+    ERR_WRONG_UP_CONFIG,
+
+    ERR_WRONG_CONFIG,
 }
 
 /**

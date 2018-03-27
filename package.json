@@ -37,7 +37,7 @@
     "transformIgnorePatterns": [
       "<rootDir>/node_modules/(moment|core-js|babel-runtime|regenerator-runtime)/"
     ],
-    "collectCoverage": false,
+    "collectCoverage": true,
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(tsx?)$",
     "moduleFileExtensions": [
       "ts",

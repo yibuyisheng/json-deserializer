@@ -3,6 +3,7 @@
  * @author yibuyisheng(yibuyisheng@163.com)
  */
 import {isArray, isObject} from '../utils';
+import {createError, ErrorCode} from '../Error';
 
 const PARENT_KEY = typeof (window as any).Symbol === 'undefined' ? '__parent__' : Symbol('parent');
 const STEP_KEY = typeof (window as any).Symbol === 'undefined' ? '__step__' : Symbol('step');
@@ -20,7 +21,7 @@ export default abstract class Config {
 
     public upConfig(item: any): any {
         if (!isObject(item) || !item[STEP_KEY]) {
-            throw new TypeError('Wrong up item.');
+            throw createError(ErrorCode.ERR_WRONG_UP_CONFIG, `Wrong up config: ${item}.`);
         }
 
         const current = item;
@@ -123,6 +124,6 @@ export default abstract class Config {
             return result;
         }
 
-        throw new Error(`Unknown config: ${JSON.stringify(config)}`);
+        throw createError(ErrorCode.ERR_WRONG_CONFIG, `Unknown config: ${JSON.stringify(config)}`);
     }
 }

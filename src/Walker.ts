@@ -71,7 +71,7 @@ export default abstract class Walker<C extends Config> {
             const prevHandled = this.findHandled(input);
             if (prevHandled) {
                 if (this.option.noCircular) {
-                    throw new Error('Circular object');
+                    throw createError(ErrorCode.ERR_CIRCULAR_OBJECT, 'Circular object');
                 }
                 return {
                     shouldBreak: false,
@@ -111,7 +111,7 @@ export default abstract class Walker<C extends Config> {
         if (this.config.isUpper(config)) {
             const upperConfig = this.config.upConfig(config);
             if (!upperConfig) {
-                throw new Error(`Wrong up config: ${upperConfig}.`);
+                throw createError(ErrorCode.ERR_WRONG_UP_CONFIG, `Wrong up config: ${upperConfig}.`);
             }
 
             if (this.isMatchConfig(input, upperConfig)) {
