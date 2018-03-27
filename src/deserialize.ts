@@ -15,7 +15,7 @@ import {
     isParserConfig,
 } from './utils';
 import DeserializerConfig from './config/DeserializerConfig';
-import Walker from './Walker';
+import Walker, {IResult} from './Walker';
 
 class Deserializer extends Walker<DeserializerConfig> {
 
@@ -23,10 +23,13 @@ class Deserializer extends Walker<DeserializerConfig> {
         super(DeserializerConfig, config);
     }
 
-    protected handleLeaf(input: any, config: IFieldParserConfig): any {
+    protected handleLeaf(input: any, config: IFieldParserConfig): IResult<any> {
         const ParserClass = (config as IFieldParserConfig).parser;
         const parser = new ParserClass(config);
-        return parser.parse(input);
+        return {
+            result: parser.parse(input),
+            shouldBreak: false,
+        };
     }
 
     protected isMatchConfig(input: any, config: any): boolean {

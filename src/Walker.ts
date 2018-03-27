@@ -2,6 +2,11 @@ import Config, {IObject} from './config/Config';
 import {isArray, isObject} from './utils';
 import {createError, ErrorCode} from './Error';
 
+export interface IResult<R> {
+    shouldBreak: boolean;
+    result?: R;
+}
+
 export default abstract class Walker<C extends Config> {
 
     private config: C;
@@ -13,15 +18,15 @@ export default abstract class Walker<C extends Config> {
     }
 
     public run(input: any): any {
-        return this.walk(input, this.config.config);
+        return this.walk(input, this.config.config).result;
     }
 
     // config 只能是一个配置节点，类似于`{parser: NumberParser}`
-    protected abstract handleLeaf(input: any, config: IObject): any;
+    protected abstract handleLeaf(input: any, config: IObject): IResult<any>;
 
     protected abstract isMatchConfig(input: any, config: any): boolean;
 
-    protected walk(input: any, config: any): any {
+    protected walk(input: any, config: any): IResult<any> {
         if (this.isLeafConfig(config)) {
             if (isArray(input)) {
                 return this.walkArray(input as any[], config);
@@ -64,7 +69,7 @@ export default abstract class Walker<C extends Config> {
         );
     }
 
-    private walkObject(input: IObject, config: IObject): IObject {
+    private walkObject(input: IObject, config: IObject): IResult<IObject> {
         const result: IObject = {};
 
         /* tslint:disable forin */
@@ -72,25 +77,36 @@ export default abstract class Walker<C extends Config> {
         /* tslint:enable forin */
             const fieldConfig = config[field];
             if (field in input) {
-                result[field] = this.walk(input[field], fieldConfig);
+                const ret = this.walk(input[field], fieldConfig);
+                if (ret.shouldBreak) {
+                    return {shouldBreak: true};
+                }
+                result[field] = ret.result;
             }
         }
 
-        return result;
+        return {
+            result,
+            shouldBreak: false,
+        };
     }
 
     // config 要么是一个配置节点，类似于`{parser: NumberParser}`，要么是一个数组。
-    private walkArray(input: any[], config: any): any[] {
+    private walkArray(input: any[], config: any): IResult<any[]> {
         const result: any[] = [];
 
         if (isArray(config)) {
             const cfg = config as any[];
 
             let lastConfig: any;
-            input.reduce((prev, val, index) => {
+            const shouldBreak = input.some((val, index) => {
                 const itemConfig = cfg[index];
                 if (itemConfig) {
-                    result[index] = this.walk(val, itemConfig);
+                    const ret = this.walk(val, itemConfig);
+                    if (ret.shouldBreak) {
+                        return true;
+                    }
+                    result[index] = ret.result;
                 }
                 // 配置节点数量少于输入数据量，就直接用之前的配置节点来处理剩下的元素
                 else if (lastConfig) {
@@ -99,8 +115,11 @@ export default abstract class Walker<C extends Config> {
 
                     if (isMatch) {
                         const ret = this.walk(val, lastConfig);
-                        if (!this.shouldIgnoreUndefined || ret !== undefined) {
-                            result[index] = ret;
+                        if (ret.shouldBreak) {
+                            return true;
+                        }
+                        if (!this.shouldIgnoreUndefined || ret.result !== undefined) {
+                            result[index] = ret.result;
                         }
                     }
                 }
@@ -109,18 +128,33 @@ export default abstract class Walker<C extends Config> {
                     lastConfig = itemConfig;
                 }
 
-                return prev;
-            }, result);
+                return false;
+            });
+
+            if (shouldBreak) {
+                return {shouldBreak};
+            }
         }
         // 对应一个配置节点
         else {
-            input.reduce((prev, val, index) => {
-                prev[index] = this.walk(val, config);
-                return prev;
+            const shouldBreak = input.some((val, index) => {
+                const ret = this.walk(val, config);
+                if (ret.shouldBreak) {
+                    return true;
+                }
+                result[index] = ret.result;
+                return false;
             }, result);
+
+            if (shouldBreak) {
+                return {shouldBreak};
+            }
         }
 
-        return result;
+        return {
+            shouldBreak: false,
+            result,
+        };
     }
 
     protected isLeafConfig(itemConfig: {[key: string]: any}): boolean {
