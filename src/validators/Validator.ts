@@ -1,24 +1,23 @@
 /**
- * @file Parser
+ * @file Validator
  * @author yibuyisheng(yibuyisheng@163.com)
  */
 import {createError, ErrorCode} from '../Error';
+import {KeyPath} from '../validate';
 
-export interface IParserOption {
-    isRequired?: boolean;
+export interface IValidatorOption {
+    isRequired: boolean;
 }
 
-/**
- * 对某一个属性值进行转换的转换器
- */
-export default abstract class Parser {
-    /**
-     * @override
-     */
-    public static toString() {
-        return `${this.name}{}`;
-    }
+export interface IValidateError {
+    keyPath: KeyPath;
+    message: string;
+    detail: any;
+}
 
+export type ValidateResult<E extends IValidateError> = true | E;
+
+export default abstract class Validator {
     /**
      * 该属性值是否是必须的。
      *
@@ -28,10 +27,17 @@ export default abstract class Parser {
     protected isRequired: boolean;
 
     /**
+     * @override
+     */
+    public static toString() {
+        return `${this.name}{}`;
+    }
+
+    /**
      * 构造函数
      * @param {boolean} isRequired 是否必须。
      */
-    public constructor(options: IParserOption = {}) {
+    public constructor(options: Partial<IValidatorOption> = {}) {
         this.isRequired = options.isRequired || false;
     }
 
@@ -39,10 +45,14 @@ export default abstract class Parser {
      * 转换方法。
      *
      * @public
-     * @param {I} input 待转换的值
-     * @return {O}
+     * @param {any} input 待验证的值
+     * @return {ValidateResult}
      */
-    public abstract parse(input: any): any;
+    public abstract validate(
+        input: any,
+        keyPath: KeyPath,
+        fullInput: any,
+    ): ValidateResult<IValidateError>;
 
     protected checkEmpty(input: any): void {
         if (this.isRequired && this.isEmpty(input)) {

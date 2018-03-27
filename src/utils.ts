@@ -3,6 +3,7 @@
  * @author yibuyisheng(yibuyisheng@163.com)
  */
 import Parser from './parsers/Parser';
+import Validator from './validators/Validator';
 
 export function isArray(val: any): boolean {
     return Object.prototype.toString.call(val) === '[object Array]';
@@ -39,4 +40,17 @@ export function isParserConstructor(parser: any): boolean {
 
 export function isParserConfig(config: any): boolean {
     return isObject(config) && isParserConstructor(config.parser);
+}
+
+export function isValidatorConstructor(validator: any): boolean {
+    if (!validator) {
+        return false;
+    }
+
+    const proto = Object.getPrototypeOf(validator);
+    return proto === Validator || proto instanceof Validator;
+}
+
+export function isValidatorConfig(config: any): boolean {
+    return isObject(config) && isValidatorConstructor(config.validator);
 }

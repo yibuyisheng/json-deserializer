@@ -3,7 +3,7 @@
  * @author yibuyisheng(yibuyisheng@163.com)
  */
 import Config from './Config';
-import {ConfigValue, IFieldParserConfig, IParserConstructor} from './ConfigTypes';
+import {ConfigValue, IFieldParserConfig, IParserConstructor} from './DeserializeConfigTypes';
 import {isParserConfig, isParserConstructor} from '../utils';
 
 export type ParserNode = IParserConstructor | IFieldParserConfig;

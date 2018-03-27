@@ -1,10 +1,15 @@
 import Config, {IObject} from './config/Config';
 import {isArray, isObject} from './utils';
 import {createError, ErrorCode} from './Error';
+import {KeyPath} from './validate';
 
 export interface IResult<R> {
     shouldBreak: boolean;
     result?: R;
+}
+
+export interface IWalkerOption {
+    noCircular: boolean;
 }
 
 export default abstract class Walker<C extends Config> {
@@ -13,12 +18,26 @@ export default abstract class Walker<C extends Config> {
 
     protected shouldIgnoreUndefined: boolean = true;
 
-    public constructor(ConfigType: new (cfg: any) => C, config: any) {
+    protected keyPath: KeyPath = [];
+
+    protected option: IWalkerOption;
+
+    protected handledInputs: Array<{input: any; result?: any;}> = [];
+
+    protected originInput: any;
+
+    public constructor(ConfigType: new (cfg: any) => C, config: any, option: Partial<IWalkerOption> = {}) {
         this.config = new ConfigType(config);
+        this.option = {
+            noCircular: true,
+            ...option,
+        };
     }
 
     public run(input: any): any {
-        return this.walk(input, this.config.config).result;
+        this.originInput = input;
+        const result = this.walk(input, this.config.config).result;
+        return result;
     }
 
     // config 只能是一个配置节点，类似于`{parser: NumberParser}`
@@ -26,10 +45,39 @@ export default abstract class Walker<C extends Config> {
 
     protected abstract isMatchConfig(input: any, config: any): boolean;
 
+    private findHandled(input: any): {input: any; result?: any;} | undefined {
+        let ret: {input: any; result?: any;} | undefined;
+        this.handledInputs.some((item) => {
+            if (input === item.input) {
+                ret = item;
+                return true;
+            }
+            return false;
+        });
+        return ret;
+    }
+
     protected walk(input: any, config: any): IResult<any> {
+        if (isObject(input) || isArray(input)) {
+            const prevHandled = this.findHandled(input);
+            if (prevHandled) {
+                if (this.option.noCircular) {
+                    throw new Error('Circular object');
+                }
+                return {
+                    shouldBreak: false,
+                    result: prevHandled.result,
+                };
+            }
+        }
+
         if (this.isLeafConfig(config)) {
             if (isArray(input)) {
-                return this.walkArray(input as any[], config);
+                const handled: {input: any, result?: any;} = {input, result: []};
+                this.handledInputs.push(handled);
+
+                const ret = this.walkArray(input as any[], config, handled.result);
+                return ret;
             }
 
             return this.handleLeaf(input, config);
@@ -37,7 +85,11 @@ export default abstract class Walker<C extends Config> {
 
         if (isArray(config)) {
             if (isArray(input)) {
-                return this.walkArray(input, config);
+                const handled = {input, result: []};
+                this.handledInputs.push(handled);
+
+                const ret = this.walkArray(input, config, handled.result);
+                return ret;
             }
 
             throw createError(
@@ -59,7 +111,11 @@ export default abstract class Walker<C extends Config> {
         }
 
         if (isObject(config) && isObject(input)) {
-            return this.walkObject(input, config);
+            const handled = {input, result: {}};
+            this.handledInputs.push(handled);
+
+            const ret = this.walkObject(input, config, handled.result);
+            return ret;
         }
 
         throw createError(
@@ -69,14 +125,15 @@ export default abstract class Walker<C extends Config> {
         );
     }
 
-    private walkObject(input: IObject, config: IObject): IResult<IObject> {
-        const result: IObject = {};
+    private walkObject(input: IObject, config: IObject, result: IObject): IResult<IObject> {
+        this.keyPath.push('');
 
         /* tslint:disable forin */
         for (const field in config) {
         /* tslint:enable forin */
             const fieldConfig = config[field];
             if (field in input) {
+                this.keyPath[this.keyPath.length - 1] = field;
                 const ret = this.walk(input[field], fieldConfig);
                 if (ret.shouldBreak) {
                     return {shouldBreak: true};
@@ -85,6 +142,8 @@ export default abstract class Walker<C extends Config> {
             }
         }
 
+        this.keyPath.pop();
+
         return {
             result,
             shouldBreak: false,
@@ -92,16 +151,17 @@ export default abstract class Walker<C extends Config> {
     }
 
     // config 要么是一个配置节点，类似于`{parser: NumberParser}`，要么是一个数组。
-    private walkArray(input: any[], config: any): IResult<any[]> {
-        const result: any[] = [];
-
+    private walkArray(input: any[], config: any, result: any[]): IResult<any[]> {
         if (isArray(config)) {
             const cfg = config as any[];
+
+            this.keyPath.push(-1);
 
             let lastConfig: any;
             const shouldBreak = input.some((val, index) => {
                 const itemConfig = cfg[index];
                 if (itemConfig) {
+                    this.keyPath[this.keyPath.length - 1] = index;
                     const ret = this.walk(val, itemConfig);
                     if (ret.shouldBreak) {
                         return true;
@@ -114,6 +174,7 @@ export default abstract class Walker<C extends Config> {
                     const isMatch: boolean = this.isMatchConfig(val, lastConfig);
 
                     if (isMatch) {
+                        this.keyPath[this.keyPath.length - 1] = index;
                         const ret = this.walk(val, lastConfig);
                         if (ret.shouldBreak) {
                             return true;
@@ -131,13 +192,17 @@ export default abstract class Walker<C extends Config> {
                 return false;
             });
 
+            this.keyPath.pop();
+
             if (shouldBreak) {
                 return {shouldBreak};
             }
         }
         // 对应一个配置节点
         else {
+            this.keyPath.push(-1);
             const shouldBreak = input.some((val, index) => {
+                this.keyPath[this.keyPath.length - 1] = index;
                 const ret = this.walk(val, config);
                 if (ret.shouldBreak) {
                     return true;
@@ -145,6 +210,7 @@ export default abstract class Walker<C extends Config> {
                 result[index] = ret.result;
                 return false;
             }, result);
+            this.keyPath.pop();
 
             if (shouldBreak) {
                 return {shouldBreak};
