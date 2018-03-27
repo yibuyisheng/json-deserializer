@@ -1,3 +1,7 @@
+/**
+ * @file validate
+ * @author yibuyisheng(yibuyisheng@163.com)
+ */
 import Walker, {IResult, IWalkerOption} from './Walker';
 import ValidatorConfig from './config/ValidatorConfig';
 import {IFieldValidatorConfig} from './config/ValidatorConfigTypes';

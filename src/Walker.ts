@@ -1,3 +1,7 @@
+/**
+ * @file Walker
+ * @author yibuyisheng(yibuyisheng@163.com)
+ */
 import Config, {IObject} from './config/Config';
 import {isArray, isObject} from './utils';
 import {createError, ErrorCode} from './Error';

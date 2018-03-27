@@ -1,3 +1,7 @@
+/**
+ * @file VEUIRulesValidators
+ * @author yibuyisheng(yibuyisheng@163.com)
+ */
 import Validator, {ValidateResult, IValidatorOption, IValidateError} from './Validator';
 import rule, {VEUIValidateResult} from 'veui/managers/rule';
 import {KeyPath} from '../validate';

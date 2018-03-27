@@ -1,3 +1,7 @@
+/**
+ * @file Error
+ * @author yibuyisheng(yibuyisheng@163.com)
+ */
 export enum ErrorCode {
     ERR_REQUIRED,
     // 经过 parseInt 或者 parseFloat 转换之后，结果是 NaN
