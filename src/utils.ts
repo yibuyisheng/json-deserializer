@@ -6,7 +6,7 @@ import Parser from './parsers/Parser';
 import Validator from './validators/Validator';
 
 export function isArray(val: any): boolean {
-    return Object.prototype.toString.call(val) === '[object Array]';
+    return Array.isArray(val);
 }
 
 export function isObject(val: any): boolean {

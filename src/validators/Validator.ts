@@ -67,6 +67,6 @@ export default abstract class Validator {
      * @return {boolean}
      */
     protected isEmpty(val: any): boolean {
-        return val == null;
+        return val == null || val === '' || (Array.isArray(val) && !val.length);
     }
 }
