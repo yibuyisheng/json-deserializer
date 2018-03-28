@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "test-debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
-    "publish-npm": "tsc && npm publish",
+    "publish-npm": "tsc && npm publish && npm run tag",
     "tag": "node tool/tag.js"
   },
   "repository": {
