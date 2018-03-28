@@ -14,6 +14,13 @@ export interface IResult<R> {
 
 export interface IWalkerOption {
     noCircular: boolean;
+
+    /**
+     * 是否优先根据输入的数据结构来遍历
+     *
+     * @type {boolean}
+     */
+    inputFirst: boolean;
 }
 
 export interface IHandled {
@@ -39,6 +46,7 @@ export default abstract class Walker<C extends Config> {
         this.config = new ConfigType(config);
         this.option = {
             noCircular: true,
+            inputFirst: true,
             ...option,
         };
     }
@@ -141,14 +149,16 @@ export default abstract class Walker<C extends Config> {
         for (const field in config) {
         /* tslint:enable forin */
             const fieldConfig = config[field];
-            if (field in input) {
-                this.keyPath[this.keyPath.length - 1] = field;
-                const ret = this.walk(input[field], fieldConfig);
-                if (ret.shouldBreak) {
-                    return {shouldBreak: true, result: {...result, [field]: ret.result}};
-                }
-                result[field] = ret.result;
+            if (this.option.inputFirst && !(field in input)) {
+                continue;
             }
+
+            this.keyPath[this.keyPath.length - 1] = field;
+            const ret = this.walk(input[field], fieldConfig);
+            if (ret.shouldBreak) {
+                return {shouldBreak: true, result: {...result, [field]: ret.result}};
+            }
+            result[field] = ret.result;
         }
 
         this.keyPath.pop();

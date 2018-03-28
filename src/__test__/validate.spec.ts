@@ -293,4 +293,21 @@ describe('validate', () => {
         expect(fn).toThrowError('Circular object');
     });
 
+    it('should return error while the target is not exist on the object.', () => {
+        const result = validate(
+            {},
+            {name: {validator: VEUIRulesValidator, rules: [{name: 'required'}]}}
+        );
+        expect(result).toEqual({"name": {"detail": [{"message": "请填写", "name": "required"}], "keyPath": ["name"], "message": "Validate fail with VEUI rules."}});
+    });
+
+    it('should not return error while validating the non-exist property if set the `inputFirst` option to `true`.', () => {
+        const result = validate(
+            {},
+            {name: {validator: VEUIRulesValidator, rules: [{name: 'required'}]}},
+            {inputFirst: true, flattenResult: true}
+        );
+        expect(result).toEqual(true);
+    });
+
 });
