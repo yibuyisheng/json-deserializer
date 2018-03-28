@@ -268,4 +268,29 @@ describe('validate', () => {
         ]);
     });
 
+    it('should throw error by default while encounter the circular object.', () => {
+        const obj1: Record<string, any> = {};
+        const obj2: Record<string, any> = {};
+
+        obj1.name = 'zhangsan';
+        obj2.name = 'lisi';
+
+        obj1.child = obj2;
+        obj2.child = obj1;
+
+        const fn = () => validate(
+            obj1,
+            {
+                name: {
+                    validator: VEUIRulesValidator, rules: [{name: 'required'}],
+                },
+                child: '^1',
+            },
+            {
+                noCircular: true,
+            }
+        );
+        expect(fn).toThrowError('Circular object');
+    });
+
 });

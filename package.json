@@ -1,6 +1,6 @@
 {
   "name": "json-deserializer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "通过配置 schema 将 JSON 数据转换成指定的类型和格式。",
   "main": "lib/index.js",
   "scripts": {
