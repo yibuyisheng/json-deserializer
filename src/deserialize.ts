@@ -15,12 +15,14 @@ import {
     isParserConfig,
 } from './utils';
 import DeserializerConfig from './config/DeserializerConfig';
-import Walker, {IResult} from './Walker';
+import Walker, {IResult, IWalkerOption} from './Walker';
+
+export interface IDeserializeOption extends IWalkerOption {}
 
 class Deserializer extends Walker<DeserializerConfig> {
 
-    public constructor(config: any) {
-        super(DeserializerConfig, config);
+    public constructor(config: any, option: Partial<IDeserializeOption> = {}) {
+        super(DeserializerConfig, config, option);
     }
 
     protected handleLeaf(input: any, config: IFieldParserConfig): IResult<any> {
@@ -49,6 +51,7 @@ class Deserializer extends Walker<DeserializerConfig> {
 export default function deserializer(
     jsonObject: JSONValue,
     config: ConfigValue,
+    option: Partial<IDeserializeOption>,
 ): any {
-    return new Deserializer(config).run(jsonObject);
+    return new Deserializer(config, option).run(jsonObject);
 }

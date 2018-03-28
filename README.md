@@ -23,18 +23,23 @@ JSON Deserializer 的输入是一个 JSON 对象，输出是一个 JavaScript �
 
 ## API
 
-### deserialize(jsonObject, config)
+### deserialize(jsonObject, config, options)
+
+反序列化 JSON 对象。
 
 * 参数
 
     - `jsonObject` JSON 对象
     - `config` schema 配置
+    - `options` 选项配置
+        - `option.noCircular` `boolean` 是否支持反序列化循环引用对象。如果是 `true` ，则遇到循环引用就会抛出异常；如果是 `false` ，则会自动跳过循环引用部分。默认 `true` 。
+        - `option.inputFirst` `boolean` 是否优先按照输入对象的数据结构进行遍历处理。默认 `true` 。
 
 * 返回值
 
     JavaScript 对象。
 
-### 使用示例
+#### 使用示例
 
 * 转换 JSON 数组
 
@@ -64,6 +69,121 @@ import deserialize, {StringParser} from 'json-deserializer';
 const jsonObject = 'yibuyisheng';
 const schema = StringParser;
 deserialize(jsonObject, schema); // result: 'yibuyisheng'
+```
+
+### validate(obj, config, option)
+
+校验 JS 对象。
+
+* 参数
+
+    - `obj` JS 对象
+    - `config` schema 配置
+    - `options` 选项配置
+        - `option.noCircular` `boolean` 是否支持反序列化循环引用对象。如果是 `true` ，则遇到循环引用就会抛出异常；如果是 `false` ，则会自动跳过循环引用部分。默认 `false` 。
+        - `option.inputFirst` `boolean` 是否优先按照输入对象的数据结构进行遍历处理。默认 `false` 。
+        - `option.all` `boolean` 是否一次性搜集对象上所有不合法的属性信息。默认 `false` 。
+        - `option.flattenResult` `boolean` 是否将搜集到的错误信息打平。默认 `false` 。
+
+* 返回值
+
+    共有三种情况：
+
+    * `true` 校验成功，没有非法数据。
+    * `FlattenResult` 当 `option.flattenResult` 设为 `true` 是，如果校验有错，则错误信息会被打平成一个数组，每个数据项都会带有固定属性。
+    * `any` 其余类型数据，跟 `obj` 参数的结构一致，叶子节点上都会包含相应数据的校验结果。
+
+#### 使用示例
+
+* 校验原始数据
+
+```js
+import validate, {VEUIRulesValidator} from 'json-deserializer';
+
+validate('123', {
+    validator: VEUIRulesValidator,
+    rules: 'required'
+}); // result: true
+
+validate(null, {
+    validator: VEUIRulesValidator,
+    rules: 'required'
+});
+// result:
+// {
+//      detail: [
+//          {
+//              message: '请填写',
+//              name: 'required'
+//          }
+//      ],
+//      keyPath: [],
+//      message: 'Validate fail with VEUI rules.',
+// }
+```
+
+* 校验对象
+
+```js
+import validate, {VEUIRulesValidator} from 'json-deserializer';
+
+validate(
+    {
+        name: 'yibuyisheng'
+    },
+    {
+        name: {
+            validator: VEUIRulesValidator,
+            rules: [
+                {
+                    name: 'pattern',
+                    value: /^[a-z]+$/
+                }
+            ]
+        }
+    }
+); // result: {name: true}
+```
+
+* 拿到打平的结果
+
+```js
+import validate, {VEUIRulesValidator} from 'json-deserializer';
+
+validate(
+    {
+        name: {
+            first: 'Li',
+            last: 'Zhang',
+        },
+    },
+    {
+        name: {
+            validator: VEUIRulesValidator,
+            rules: [
+                {
+                    name: 'pattern',
+                    value: /^[a-z]+$/,
+                    message: '格式不符合要求',
+                }
+            ]
+        },
+    },
+    {
+        flattenResult: true,
+    }
+);
+// result:
+// [
+//      {
+//          keyPath: ['name'],
+//          result: {
+//              detail: [{message: '格式不符合要求', name: 'pattern'}],
+//              keyPath: ['name'],
+//              message: 'Validate fail with VEUI rules.'
+//          }
+//      }
+// ]
 ```
 
 # Changelog
