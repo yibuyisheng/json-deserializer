@@ -65,3 +65,18 @@ const jsonObject = 'yibuyisheng';
 const schema = StringParser;
 deserialize(jsonObject, schema); // result: 'yibuyisheng'
 ```
+
+# Changelog
+
+## v0.0.3
+
+### 💡 主要变更
+
+* [+] 新增校验器，可以对 JS 对象进行全方位校验，支持检测包含循环引用的对象。
+* [+] 支持检测带有循环引用的 JSON 对象。
+
+## v0.0.2
+
+### 💡 主要变更
+
+* [+] 支持对 JSON 对象的 normalize 。
