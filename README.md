@@ -68,6 +68,12 @@ deserialize(jsonObject, schema); // result: 'yibuyisheng'
 
 # Changelog
 
+## v0.0.4
+
+### 💡 主要变更
+
+* [+] 在 index.js 中导出模块。
+
 ## v0.0.3
 
 ### 💡 主要变更
