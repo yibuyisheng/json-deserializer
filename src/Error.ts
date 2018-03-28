@@ -1,3 +1,7 @@
+/**
+ * @file Error
+ * @author yibuyisheng(yibuyisheng@163.com)
+ */
 export enum ErrorCode {
     ERR_REQUIRED,
     // 经过 parseInt 或者 parseFloat 转换之后，结果是 NaN
@@ -8,6 +12,26 @@ export enum ErrorCode {
     ERR_INVALID_DATE,
 
     ERR_SCHEMA_NOT_MATCH,
+
+    ERR_CONFIG_END,
+
+    ERR_CONFIG_NOT_INITED,
+
+    ERR_CONFIG_ALREADY_END,
+
+    ERR_CONFIG_CURRENT_IS_NOT_OBJECT,
+
+    ERR_CONFIG_EMPTY_KEY,
+
+    ERR_CONFIG_KEY_EXISTS,
+
+    ERR_CONFIG_CURRENT_NOT_ARRAY,
+
+    ERR_CIRCULAR_OBJECT,
+
+    ERR_WRONG_UP_CONFIG,
+
+    ERR_WRONG_CONFIG,
 }
 
 /**

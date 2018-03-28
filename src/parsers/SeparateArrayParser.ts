@@ -2,9 +2,9 @@
  * @file 将特定字符分割的字符串转换成字符串数组，比如：'1,2,3' -> [1,2,3]
  * @author yibuyisheng(yibuyisheng@163.com)
  */
-import Parser, {IOption} from './Parser';
+import Parser, {IParserOption} from './Parser';
 
-export interface ISeparateArrayOption extends IOption {
+export interface ISeparateArrayOption extends IParserOption {
     separator?: RegExp;
     noEmpty?: boolean;
 }

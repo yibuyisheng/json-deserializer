@@ -2,10 +2,10 @@
  * @file NumberParser
  * @author yibuyisheng(yibuyisheng@163.com)
  */
-import {createError, ErrorCode} from './Error';
-import Parser, {IOption} from './Parser';
+import {createError, ErrorCode} from '../Error';
+import Parser, {IParserOption} from './Parser';
 
-export interface INumberOption extends IOption {
+export interface INumberOption extends IParserOption {
     isInt?: boolean;
     radix?: 10;
 }

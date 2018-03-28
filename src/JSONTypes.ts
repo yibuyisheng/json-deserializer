@@ -1,3 +1,8 @@
+/**
+ * @file JSONTypes
+ * @author yibuyisheng(yibuyisheng@163.com)
+ */
+
 export type JSONBaseType = string | number | true | false | null;
 
 export type JSONValue = IJSONObject | IJSONArray | JSONBaseType;

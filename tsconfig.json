@@ -17,16 +17,18 @@
         "watch": false,
         "declaration": true,
         "declarationDir": "./types",
-        "baseUrl": "."
+        "baseUrl": ".",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
     },
     "include": [
-        "./src/**/*",
-        "./test/**/*"
+        "./src/**/*"
     ],
     "exclude": [
         "node_modules",
         "lib",
         "bin",
-        "types"
+        "types",
+        "**/*.spec.ts"
     ]
 }

@@ -1,11 +1,15 @@
-import Parser, {IOption} from './Parser';
+/**
+ * @file ConfigTypes
+ * @author yibuyisheng(yibuyisheng@163.com)
+ */
+import Parser, {IParserOption} from '../parsers/Parser';
 
 export interface IParserConstructor {
-    new (options?: IOption | Record<string, any>): Parser;
+    new (options?: IParserOption | Record<string, any>): Parser;
 }
 
-export interface IArrayConfig {
-    [field: number]: IParserConstructor | IArrayConfig | IObjectConfig;
+export interface IArrayConfig extends Array<ConfigValue> {
+    [field: number]: ConfigValue;
 }
 
 export interface IFieldParserConfig {

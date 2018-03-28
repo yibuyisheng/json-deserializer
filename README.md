@@ -1,7 +1,7 @@
 # JSON Deserializer
 
 [![Build Status](https://travis-ci.org/yibuyisheng/json-deserializer.svg?branch=master)](https://travis-ci.org/yibuyisheng/json-deserializer)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer?ref=badge_shield)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer?ref=badge_large)
 
 # 安装
 
@@ -23,18 +23,23 @@ JSON Deserializer 的输入是一个 JSON 对象，输出是一个 JavaScript �
 
 ## API
 
-### deserialize(jsonObject, config)
+### deserialize(jsonObject, config, options)
+
+反序列化 JSON 对象。
 
 * 参数
 
     - `jsonObject` JSON 对象
     - `config` schema 配置
+    - `options` 选项配置
+        - `option.noCircular` `boolean` 是否支持反序列化循环引用对象。如果是 `true` ，则遇到循环引用就会抛出异常；如果是 `false` ，则会自动跳过循环引用部分。默认 `true` 。
+        - `option.inputFirst` `boolean` 是否优先按照输入对象的数据结构进行遍历处理。默认 `true` 。
 
 * 返回值
 
     JavaScript 对象。
 
-### 使用示例
+#### 使用示例
 
 * 转换 JSON 数组
 
@@ -66,6 +71,144 @@ const schema = StringParser;
 deserialize(jsonObject, schema); // result: 'yibuyisheng'
 ```
 
+### validate(obj, config, option)
 
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer?ref=badge_large)
+校验 JS 对象。
+
+* 参数
+
+    - `obj` JS 对象
+    - `config` schema 配置
+    - `options` 选项配置
+        - `option.noCircular` `boolean` 是否支持反序列化循环引用对象。如果是 `true` ，则遇到循环引用就会抛出异常；如果是 `false` ，则会自动跳过循环引用部分。默认 `false` 。
+        - `option.inputFirst` `boolean` 是否优先按照输入对象的数据结构进行遍历处理。默认 `false` 。
+        - `option.all` `boolean` 是否一次性搜集对象上所有不合法的属性信息。默认 `false` 。
+        - `option.flattenResult` `boolean` 是否将搜集到的错误信息打平。默认 `false` 。
+
+* 返回值
+
+    共有三种情况：
+
+    * `true` 校验成功，没有非法数据。
+    * `FlattenResult` 当 `option.flattenResult` 设为 `true` 是，如果校验有错，则错误信息会被打平成一个数组，每个数据项都会带有固定属性。
+    * `any` 其余类型数据，跟 `obj` 参数的结构一致，叶子节点上都会包含相应数据的校验结果。
+
+#### 使用示例
+
+* 校验原始数据
+
+```js
+import validate, {VEUIRulesValidator} from 'json-deserializer';
+
+validate('123', {
+    validator: VEUIRulesValidator,
+    rules: 'required'
+}); // result: true
+
+validate(null, {
+    validator: VEUIRulesValidator,
+    rules: 'required'
+});
+// result:
+// {
+//      detail: [
+//          {
+//              message: '请填写',
+//              name: 'required'
+//          }
+//      ],
+//      keyPath: [],
+//      message: 'Validate fail with VEUI rules.',
+// }
+```
+
+* 校验对象
+
+```js
+import validate, {VEUIRulesValidator} from 'json-deserializer';
+
+validate(
+    {
+        name: 'yibuyisheng'
+    },
+    {
+        name: {
+            validator: VEUIRulesValidator,
+            rules: [
+                {
+                    name: 'pattern',
+                    value: /^[a-z]+$/
+                }
+            ]
+        }
+    }
+); // result: {name: true}
+```
+
+* 拿到打平的结果
+
+```js
+import validate, {VEUIRulesValidator} from 'json-deserializer';
+
+validate(
+    {
+        name: {
+            first: 'Li',
+            last: 'Zhang',
+        },
+    },
+    {
+        name: {
+            validator: VEUIRulesValidator,
+            rules: [
+                {
+                    name: 'pattern',
+                    value: /^[a-z]+$/,
+                    message: '格式不符合要求',
+                }
+            ]
+        },
+    },
+    {
+        flattenResult: true,
+    }
+);
+// result:
+// [
+//      {
+//          keyPath: ['name'],
+//          result: {
+//              detail: [{message: '格式不符合要求', name: 'pattern'}],
+//              keyPath: ['name'],
+//              message: 'Validate fail with VEUI rules.'
+//          }
+//      }
+// ]
+```
+
+# Changelog
+
+## v0.0.5
+
+### 💡 主要变更
+
+* [+] 支持 `inputFirst` 配置，即以被处理对象的数据结构为准，还是以配置对象的数据结构为准。
+
+## v0.0.4
+
+### 💡 主要变更
+
+* [+] 在 index.js 中导出模块。
+
+## v0.0.3
+
+### 💡 主要变更
+
+* [+] 新增校验器，可以对 JS 对象进行全方位校验，支持检测包含循环引用的对象。
+* [+] 支持检测带有循环引用的 JSON 对象。
+
+## v0.0.2
+
+### 💡 主要变更
+
+* [+] 支持对 JSON 对象的 normalize 。

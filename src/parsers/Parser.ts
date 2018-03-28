@@ -2,9 +2,9 @@
  * @file Parser
  * @author yibuyisheng(yibuyisheng@163.com)
  */
-import {createError, ErrorCode} from './Error';
+import {createError, ErrorCode} from '../Error';
 
-export interface IOption {
+export interface IParserOption {
     isRequired?: boolean;
 }
 
@@ -31,7 +31,7 @@ export default abstract class Parser {
      * 构造函数
      * @param {boolean} isRequired 是否必须。
      */
-    public constructor(options: IOption = {}) {
+    public constructor(options: IParserOption = {}) {
         this.isRequired = options.isRequired || false;
     }
 
