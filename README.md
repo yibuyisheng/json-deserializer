@@ -1,7 +1,6 @@
 # JSON Deserializer
 
 [![Build Status](https://travis-ci.org/yibuyisheng/json-deserializer.svg?branch=master)](https://travis-ci.org/yibuyisheng/json-deserializer)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer?ref=badge_large)
 
 # 安装
 
@@ -185,6 +184,10 @@ validate(
 //      }
 // ]
 ```
+
+# License
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyibuyisheng%2Fjson-deserializer?ref=badge_large)
 
 # Changelog
 
