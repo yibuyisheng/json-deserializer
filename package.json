@@ -60,7 +60,7 @@
     "jest": "^22.4.3",
     "moment": "^2.21.0",
     "ts-jest": "^22.4.2",
-    "typescript": "^2.7.2",
+    "typescript": "^2.8.1",
     "veui": "^1.0.0-alpha.9"
   },
   "dependencies": {}

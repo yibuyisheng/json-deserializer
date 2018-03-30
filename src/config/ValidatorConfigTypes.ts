@@ -5,7 +5,7 @@
 import Validator, {IValidatorOption} from '../validators/Validator';
 
 export interface IValidatorConstructor {
-    new (options?: IValidatorOption | Record<string, any>): Validator;
+    new (options?: IValidatorOption | Record<string, any>): Validator<any, any>;
 }
 
 export interface IArrayConfig extends Array<ConfigValue> {

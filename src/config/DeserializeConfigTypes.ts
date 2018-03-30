@@ -5,7 +5,7 @@
 import Parser, {IParserOption} from '../parsers/Parser';
 
 export interface IParserConstructor {
-    new (options?: IParserOption | Record<string, any>): Parser;
+    new (options?: IParserOption | Record<string, any>): Parser<any, any>;
 }
 
 export interface IArrayConfig extends Array<ConfigValue> {}
