@@ -93,7 +93,7 @@ export default abstract class Walker<C extends Config> {
                 const handled = {input, result: []};
                 this.handledInputs.push(handled);
 
-                const ret = this.walkArray(input as any[], config, handled.result);
+                const ret = this.walkArray(input, config, handled.result);
                 return ret;
             }
 
@@ -172,14 +172,12 @@ export default abstract class Walker<C extends Config> {
     // config 要么是一个配置节点，类似于`{parser: NumberParser}`，要么是一个数组。
     private walkArray(input: any[], config: any, result: any[]): IResult<any[]> {
         if (isArray(config)) {
-            const cfg = config as any[];
-
             this.keyPath.push(-1);
 
             let lastConfig: any;
             let lastResult: any;
             const shouldBreak = input.some((val, index) => {
-                const itemConfig = cfg[index];
+                const itemConfig = config[index];
                 if (itemConfig) {
                     this.keyPath[this.keyPath.length - 1] = index;
                     const ret = this.walk(val, itemConfig);

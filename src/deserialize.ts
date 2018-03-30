@@ -26,7 +26,7 @@ class Deserializer extends Walker<DeserializerConfig> {
     }
 
     protected handleLeaf(input: any, config: IFieldParserConfig): IResult<any> {
-        const ParserClass = (config as IFieldParserConfig).parser;
+        const ParserClass = config.parser;
         const parser = new ParserClass(config);
         return {
             result: parser.parse(input),

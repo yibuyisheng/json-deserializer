@@ -15,7 +15,7 @@ export default class DeserializerConfig extends Config {
 
     protected normalizeLeaf(value: ParserNode): IFieldParserConfig {
         return isParserConfig(value)
-            ? {...(value as IFieldParserConfig)}
-            : {parser: value as IParserConstructor};
+            ? {...value}
+            : {parser: value};
     }
 }

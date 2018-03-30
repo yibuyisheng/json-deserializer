@@ -34,17 +34,24 @@ export enum ErrorCode {
     ERR_WRONG_CONFIG,
 }
 
+declare global {
+    interface Error {
+        code?: ErrorCode;
+        extra?: any;
+    }
+}
+
 /**
  * 包一层，给 error 加上 code 。
  *
  * @param {ErrorCode} code
  * @param {string} message
- * @param {any} extra
+ * @param {T} extra
  * @return {Error}
  */
-export function createError(code: ErrorCode, message: string = 'Error.', extra: any = null): Error {
+export function createError<T>(code: ErrorCode, message: string = 'Error.', extra?: T): Error {
     const error = new Error(message);
-    (error as any).code = code;
-    (error as any).extra = extra;
+    error.code = code;
+    error.extra = extra;
     return error;
 }

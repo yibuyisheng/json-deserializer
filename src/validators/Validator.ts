@@ -17,7 +17,7 @@ export interface IValidateError {
 
 export type ValidateResult<E extends IValidateError> = true | E;
 
-export default abstract class Validator {
+export default abstract class Validator<I, FI> {
     /**
      * 该属性值是否是必须的。
      *
@@ -45,13 +45,15 @@ export default abstract class Validator {
      * 转换方法。
      *
      * @public
-     * @param {any} input 待验证的值
+     * @param {I} input 待验证的值
+     * @param {KeyPath} keyPath key path
+     * @param {FI} fullInput 完整输入数据
      * @return {ValidateResult}
      */
     public abstract validate(
-        input: any,
+        input: I,
         keyPath: KeyPath,
-        fullInput: any,
+        fullInput: FI,
     ): ValidateResult<IValidateError>;
 
     protected checkEmpty(input: any): void {
@@ -66,7 +68,7 @@ export default abstract class Validator {
      * @param {any} val 待判断的值
      * @return {boolean}
      */
-    protected isEmpty(val: any): boolean {
-        return val == null || val === '' || (Array.isArray(val) && !val.length);
+    protected isEmpty<T>(val: T): boolean {
+        return val == null || (typeof val === 'string' && val === '') || (Array.isArray(val) && !val.length);
     }
 }

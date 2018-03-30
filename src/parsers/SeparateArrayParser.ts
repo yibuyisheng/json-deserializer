@@ -9,7 +9,7 @@ export interface ISeparateArrayOption extends IParserOption {
     noEmpty?: boolean;
 }
 
-export default class SeparateArrayParser extends Parser {
+export default class SeparateArrayParser<T> extends Parser<T, string[] | undefined> {
     /**
      * 分割器
      *
@@ -39,7 +39,7 @@ export default class SeparateArrayParser extends Parser {
     /**
      * @override
      */
-    public parse(input: any): string[] | undefined {
+    public parse(input: T): string[] | undefined {
         this.checkEmpty(input);
         if (input === undefined) {
             return undefined;

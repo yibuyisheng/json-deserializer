@@ -48,7 +48,7 @@ class ValidatorController extends Walker<ValidatorConfig> {
     }
 
     protected handleLeaf(input: any, config: IFieldValidatorConfig): IResult<ValidateResult<IValidateError>> {
-        const ValidatorClass = (config as IFieldValidatorConfig).validator;
+        const ValidatorClass = config.validator;
         const validator = new ValidatorClass(config);
         const result = validator.validate(input, [...this.keyPath], this.originInput);
 

@@ -11,7 +11,7 @@ export interface IParserOption {
 /**
  * 对某一个属性值进行转换的转换器
  */
-export default abstract class Parser {
+export default abstract class Parser<I, O> {
     /**
      * @override
      */
@@ -42,7 +42,7 @@ export default abstract class Parser {
      * @param {I} input 待转换的值
      * @return {O}
      */
-    public abstract parse(input: any): any;
+    public abstract parse(input: I): O;
 
     protected checkEmpty(input: any): void {
         if (this.isRequired && this.isEmpty(input)) {

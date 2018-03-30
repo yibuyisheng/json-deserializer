@@ -13,7 +13,7 @@ export interface IDateOption extends IParserOption {
 /**
  * 字符串转换器
  */
-export default class DateParser extends Parser {
+export default class DateParser<I> extends Parser<I, Date | undefined> {
 
     /**
      * 输入日期的格式。
@@ -35,7 +35,7 @@ export default class DateParser extends Parser {
     /**
      * @override
      */
-    public parse(input: any): Date | undefined {
+    public parse(input: I): Date | undefined {
         this.checkEmpty(input);
         if (input === undefined) {
             return undefined;

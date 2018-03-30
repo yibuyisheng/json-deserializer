@@ -13,7 +13,7 @@ export interface INumberOption extends IParserOption {
 /**
  * 数字转换器
  */
-export default class NumberParser extends Parser {
+export default class NumberParser<I> extends Parser<I, number | undefined> {
     /**
      * 是否使用 parseInt 来转换
      *
@@ -47,13 +47,13 @@ export default class NumberParser extends Parser {
     /**
      * @override
      */
-    public parse(input: any): number | undefined {
+    public parse(input: I): number | undefined {
         this.checkEmpty(input);
         if (input === undefined) {
             return undefined;
         }
 
-        const result = this.isInt ? parseInt(input, this.radix) : parseFloat(input);
+        const result = this.isInt ? parseInt('' + input, this.radix) : parseFloat('' + input);
         if (isNaN(result)) {
             throw createError(ErrorCode.ERR_NUMBER_FORMAT);
         }

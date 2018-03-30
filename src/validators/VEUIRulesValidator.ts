@@ -14,7 +14,7 @@ export interface IVEUIRuleValidateError extends IValidateError {
     detail: VEUIValidateResult;
 }
 
-export default class VEUIRulesValidator extends Validator {
+export default class VEUIRulesValidator<I, FI> extends Validator<I, FI> {
     private rules: Array<{name: string;}>;
 
     public constructor(option: Partial<IVEUIRulesValidatorOption> = {}) {
@@ -30,9 +30,9 @@ export default class VEUIRulesValidator extends Validator {
     }
 
     public validate(
-        input: any,
+        input: I,
         keyPath: KeyPath,
-        _: any,
+        _: FI,
     ): ValidateResult<IVEUIRuleValidateError> {
         const ret = rule.validate(input, this.rules);
         if (ret === true) {
