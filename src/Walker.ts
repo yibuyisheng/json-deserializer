@@ -21,6 +21,8 @@ export interface IWalkerOption {
      * @type {boolean}
      */
     inputFirst: boolean;
+
+    shouldIgnoreUndefined: boolean;
 }
 
 export interface IHandled {
@@ -31,8 +33,6 @@ export interface IHandled {
 export default abstract class Walker<C extends Config> {
 
     private config: C;
-
-    protected shouldIgnoreUndefined: boolean = true;
 
     protected keyPath: KeyPath = [];
 
@@ -47,6 +47,7 @@ export default abstract class Walker<C extends Config> {
         this.option = {
             noCircular: true,
             inputFirst: true,
+            shouldIgnoreUndefined: true,
             ...option,
         };
     }
@@ -199,7 +200,7 @@ export default abstract class Walker<C extends Config> {
                             lastResult = ret.result;
                             return true;
                         }
-                        if (!this.shouldIgnoreUndefined || ret.result !== undefined) {
+                        if (!this.option.shouldIgnoreUndefined || ret.result !== undefined) {
                             result[index] = ret.result;
                         }
                     }

@@ -39,7 +39,7 @@ class Deserializer extends Walker<DeserializerConfig> {
         const isMatch: boolean =
             // **注意：**在 JSON 里面没有 undefined ，所以遇到 undefined ，其实就是在原 JSON 数据里面不存在。
             // 如果 lastParserConfig 是一个展开的 parser 配置（ {parser: ParserClass } ），那么只要当前元素存在就可以转换。
-            (isParserConfig(config) && input !== undefined)
+            (isParserConfig(config) && (!this.option.shouldIgnoreUndefined || input !== undefined))
             // 如果 lastParserConfig 是一个数组，那么只要 input 也是数组就可以转换。
             || (isArrayConfig(config) && isJSONArray(input))
             // 如果 lastParserConfig 是一个对象配置，那么只要 input 也对应是对象，就可以转换。
@@ -51,7 +51,7 @@ class Deserializer extends Walker<DeserializerConfig> {
 export default function deserializer(
     jsonObject: JSONValue,
     config: ConfigValue,
-    option: Partial<IDeserializeOption>,
+    option: Partial<IDeserializeOption> = {},
 ): any {
     return new Deserializer(config, option).run(jsonObject);
 }

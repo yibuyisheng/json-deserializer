@@ -4,7 +4,7 @@
   "description": "通过配置 schema 将 JSON 数据转换成指定的类型和格式。",
   "main": "lib/index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "test-debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "publish-npm": "tsc && npm publish && npm run tag",
     "tag": "node tool/tag.js"
@@ -15,7 +15,8 @@
   },
   "keywords": [
     "JSON",
-    "deserializer"
+    "deserializer",
+    "validator"
   ],
   "author": "yibuyisheng",
   "license": "ISC",
@@ -35,9 +36,9 @@
       "^.+\\.jsx?$": "babel-jest"
     },
     "transformIgnorePatterns": [
-      "<rootDir>/node_modules/(moment|core-js|babel-runtime|regenerator-runtime)/"
+      "<rootDir>/node_modules/(moment|core-js|babel-runtime|regenerator-runtime|lodash)/"
     ],
-    "collectCoverage": true,
+    "collectCoverage": false,
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(tsx?)$",
     "moduleFileExtensions": [
       "ts",

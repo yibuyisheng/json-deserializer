@@ -29,6 +29,7 @@ class ValidatorController extends Walker<ValidatorConfig> {
             flattenResult: false,
             noCircular: false,
             inputFirst: false,
+            shouldIgnoreUndefined: true,
             ...option,
         };
     }
