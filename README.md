@@ -191,6 +191,12 @@ validate(
 
 # Changelog
 
+## v0.0.6
+
+### 💡 主要变更
+
+* [+] 支持 shouldIgnoreUndefined 配置。
+
 ## v0.0.5
 
 ### 💡 主要变更
